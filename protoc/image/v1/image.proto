@@ -8,7 +8,7 @@ import "google/protobuf/empty.proto";
 
 service ImageService {
   rpc UploadImage(stream UploadImageRequest) returns (google.protobuf.Empty) {}
-  rpc GetImage(GetImageRequest) returns (stream GetFileResponse) {}
+  rpc GetImage(GetImageRequest) returns (stream GetImageResponse) {}
 }
 
 message Meta {
@@ -26,7 +26,7 @@ message GetImageRequest {
   string id = 1;
 }
 
-message GetFileResponse {
+message GetImageResponse {
   oneof value {
     Meta meta = 1;
     bytes chunk = 2;

@@ -85,7 +85,7 @@ func (c *imageServiceClient) GetImage(ctx context.Context, in *GetImageRequest, 
 }
 
 type ImageService_GetImageClient interface {
-	Recv() (*GetFileResponse, error)
+	Recv() (*GetImageResponse, error)
 	grpc.ClientStream
 }
 
@@ -93,8 +93,8 @@ type imageServiceGetImageClient struct {
 	grpc.ClientStream
 }
 
-func (x *imageServiceGetImageClient) Recv() (*GetFileResponse, error) {
-	m := new(GetFileResponse)
+func (x *imageServiceGetImageClient) Recv() (*GetImageResponse, error) {
+	m := new(GetImageResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func _ImageService_GetImage_Handler(srv interface{}, stream grpc.ServerStream) e
 }
 
 type ImageService_GetImageServer interface {
-	Send(*GetFileResponse) error
+	Send(*GetImageResponse) error
 	grpc.ServerStream
 }
 
@@ -176,7 +176,7 @@ type imageServiceGetImageServer struct {
 	grpc.ServerStream
 }
 
-func (x *imageServiceGetImageServer) Send(m *GetFileResponse) error {
+func (x *imageServiceGetImageServer) Send(m *GetImageResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
