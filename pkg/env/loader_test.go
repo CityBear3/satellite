@@ -23,7 +23,43 @@ func TestGetStrEnv(t *testing.T) {
 	type args struct {
 		key          string
 		defaultValue string
-		required     bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		// Test cases
+		{
+			name: "env variable exists",
+			args: args{
+				key: "SOME_KEY",
+			},
+			want: "test",
+		},
+		{
+			name: "env variable does not exist and return default value",
+			args: args{
+				key:          "NON_EXISTENT_KEY",
+				defaultValue: "default",
+			},
+			want: "default",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetStrEnv(tt.args.key, tt.args.defaultValue)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestGetRequiredStrEnv(t *testing.T) {
+	if err := setValue("SOME_KEY", "test"); err != nil {
+		t.Fatal(err)
+	}
+	type args struct {
+		key string
 	}
 	tests := []struct {
 		name        string
@@ -36,8 +72,7 @@ func TestGetStrEnv(t *testing.T) {
 		{
 			name: "env variable exists",
 			args: args{
-				key:      "SOME_KEY",
-				required: true,
+				key: "SOME_KEY",
 			},
 			want:    "test",
 			wantErr: false,
@@ -45,28 +80,20 @@ func TestGetStrEnv(t *testing.T) {
 		{
 			name: "env variable does not exist",
 			args: args{
-				key:      "NON_EXISTENT_KEY",
-				required: true,
+				key: "NON_EXISTENT_KEY",
 			},
 			wantErr:     true,
 			expectedErr: errors.New(fmt.Sprintf(ValueNotFoundError, "NON_EXISTENT_KEY")),
 		},
-		{
-			name: "env variable does not exist and is not required",
-			args: args{
-				key:          "NON_EXISTENT_KEY",
-				defaultValue: "default",
-				required:     false,
-			},
-			want:    "default",
-			wantErr: false,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetStrEnv(tt.args.key, tt.args.defaultValue, tt.args.required)
+			got, err := GetRequiredStrEnv(tt.args.key)
 			if tt.wantErr {
 				assert.Error(t, err)
+				if tt.expectedErr != nil {
+					assert.EqualError(t, err, tt.expectedErr.Error())
+				}
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.want, got)
@@ -85,7 +112,6 @@ func TestGetIntEnv(t *testing.T) {
 	type args struct {
 		key          string
 		defaultValue int
-		required     bool
 	}
 	tests := []struct {
 		name        string
@@ -97,26 +123,15 @@ func TestGetIntEnv(t *testing.T) {
 		{
 			name: "env variable exists",
 			args: args{
-				key:      "SOME_KEY",
-				required: true,
+				key: "SOME_KEY",
 			},
 			want: 123,
 		},
 		{
-			name: "env variable does not exist",
-			args: args{
-				key:      "NON_EXISTENT_KEY",
-				required: true,
-			},
-			wantErr:     true,
-			expectedErr: errors.New(fmt.Sprintf(ValueNotFoundError, "NON_EXISTENT_KEY")),
-		},
-		{
-			name: "env variable does not exist and is not required",
+			name: "env variable does not exist and return default value",
 			args: args{
 				key:          "NON_EXISTENT_KEY",
 				defaultValue: 1,
-				required:     false,
 			},
 			want:    1,
 			wantErr: false,
@@ -124,8 +139,7 @@ func TestGetIntEnv(t *testing.T) {
 		{
 			name: "env variable exist and is invalid",
 			args: args{
-				key:      "INVALID_EXISTENT_KEY",
-				required: false,
+				key: "INVALID_EXISTENT_KEY",
 			},
 			wantErr: true,
 		},
@@ -133,7 +147,63 @@ func TestGetIntEnv(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetIntEnv(tt.args.key, tt.args.defaultValue, tt.args.required)
+			got, err := GetIntEnv(tt.args.key, tt.args.defaultValue)
+			if tt.wantErr {
+				if tt.expectedErr != nil {
+					assert.EqualError(t, err, tt.expectedErr.Error())
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestGetRequiredIntEnv(t *testing.T) {
+	if err := setValue("SOME_KEY", strconv.Itoa(123)); err != nil {
+		t.Fatal(err)
+	}
+	if err := setValue("INVALID_EXISTENT_KEY", ""); err != nil {
+		t.Fatal(err)
+	}
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        int
+		wantErr     bool
+		expectedErr error
+	}{
+		{
+			name: "env variable exists",
+			args: args{
+				key: "SOME_KEY",
+			},
+			want: 123,
+		},
+		{
+			name: "env variable does not exist",
+			args: args{
+				key: "NON_EXISTENT_KEY",
+			},
+			wantErr:     true,
+			expectedErr: errors.New(fmt.Sprintf(ValueNotFoundError, "NON_EXISTENT_KEY")),
+		},
+		{
+			name: "env variable exist and is invalid",
+			args: args{
+				key: "INVALID_EXISTENT_KEY",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetRequiredIntEnv(tt.args.key)
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErr != nil {
@@ -157,7 +227,6 @@ func TestGetBoolEnv(t *testing.T) {
 	type args struct {
 		key          string
 		defaultValue bool
-		required     bool
 	}
 	tests := []struct {
 		name        string
@@ -169,35 +238,22 @@ func TestGetBoolEnv(t *testing.T) {
 		{
 			name: "env variable exists",
 			args: args{
-				key:      "SOME_KEY",
-				required: true,
+				key: "SOME_KEY",
 			},
 			want: true,
 		},
 		{
-			name: "env variable does not exist",
-			args: args{
-				key:      "NON_EXISTENT_KEY",
-				required: true,
-			},
-			wantErr:     true,
-			expectedErr: errors.New(fmt.Sprintf(ValueNotFoundError, "NON_EXISTENT_KEY")),
-		},
-		{
-			name: "env variable does not exist and is not required",
+			name: "env variable does not exist and return default value",
 			args: args{
 				key:          "NON_EXISTENT_KEY",
-				defaultValue: true,
-				required:     false,
+				defaultValue: false,
 			},
-			want:    true,
-			wantErr: false,
+			want: false,
 		},
 		{
 			name: "env variable exist and is invalid",
 			args: args{
-				key:      "INVALID_EXISTENT_KEY",
-				required: false,
+				key: "INVALID_EXISTENT_KEY",
 			},
 			wantErr: true,
 		},
@@ -205,7 +261,64 @@ func TestGetBoolEnv(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetBoolEnv(tt.args.key, tt.args.defaultValue, tt.args.required)
+			got, err := GetBoolEnv(tt.args.key, tt.args.defaultValue)
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.expectedErr != nil {
+					assert.EqualError(t, err, tt.expectedErr.Error())
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestGetRequiredBoolEnv(t *testing.T) {
+	if err := setValue("SOME_KEY", strconv.FormatBool(true)); err != nil {
+		t.Fatal(err)
+	}
+	if err := setValue("INVALID_EXISTENT_KEY", "invalid"); err != nil {
+		t.Fatal(err)
+	}
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name        string
+		args        args
+		want        bool
+		wantErr     bool
+		expectedErr error
+	}{
+		{
+			name: "env variable exists",
+			args: args{
+				key: "SOME_KEY",
+			},
+			want: true,
+		},
+		{
+			name: "env variable does not exist",
+			args: args{
+				key: "NON_EXISTENT_KEY",
+			},
+			wantErr:     true,
+			expectedErr: errors.New(fmt.Sprintf(ValueNotFoundError, "NON_EXISTENT_KEY")),
+		},
+		{
+			name: "env variable exist and is invalid",
+			args: args{
+				key: "INVALID_EXISTENT_KEY",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GetRequiredBoolEnv(tt.args.key)
 			if tt.wantErr {
 				assert.Error(t, err)
 				if tt.expectedErr != nil {
