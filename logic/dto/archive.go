@@ -10,6 +10,7 @@ type UploadArchiveRequest struct {
 	Id          ulid.ULID
 	ContentType string
 	Data        []byte
+	DeviceId    ulid.ULID
 	Result
 }
 
@@ -24,10 +25,11 @@ type GetArchiveResult struct {
 	Result
 }
 
-func NewUploadArchiveRequest(id ulid.ULID, contentType string, data []byte) UploadArchiveRequest {
+func NewUploadArchiveRequest(id ulid.ULID, contentType string, data []byte, deviceId ulid.ULID) UploadArchiveRequest {
 	return UploadArchiveRequest{
 		Id:          id,
 		ContentType: contentType,
 		Data:        data,
+		DeviceId:    deviceId,
 	}
 }
