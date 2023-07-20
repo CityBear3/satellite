@@ -4,50 +4,30 @@ import (
 	"fmt"
 	"github.com/CityBear3/satellite/pb/image/v1"
 	"github.com/CityBear3/satellite/pkg/apperrs"
-	"github.com/google/uuid"
+	"github.com/CityBear3/satellite/tests/helper"
+	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 )
 
 const (
-	TestDataPath = "../../../testdata"
+	TestDataPath = "../../../testdata/validation/%s"
 )
-
-func getImage(name string, buf []byte) error {
-	path := fmt.Sprintf("%s/%s", TestDataPath, name)
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(file)
-
-	_, err = file.Read(buf)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func TestValidateUploadImageStream(t *testing.T) {
 	type args struct {
-		meta *image.Meta
-		data []byte
+		meta        *image.Meta
+		data        []byte
+		contentType string
 	}
 
 	data := make([]byte, 1024)
-	if err := getImage("validation.jpg", data); err != nil {
+	if err := helper.ReadFileData(fmt.Sprintf(TestDataPath, "ok.jpg"), data); err != nil {
 		t.Fatal(err)
 	}
 
 	invalidData := make([]byte, 1024)
-	if err := getImage("validation_invalid.txt", invalidData); err != nil {
+	if err := helper.ReadFileData(fmt.Sprintf(TestDataPath, "invalid.txt"), invalidData); err != nil {
 		t.Fatal(err)
 	}
 
@@ -59,8 +39,9 @@ func TestValidateUploadImageStream(t *testing.T) {
 		{
 			name: "no error occurred",
 			args: args{
-				&image.Meta{Id: uuid.New().String()},
+				&image.Meta{Id: ulid.Make().String()},
 				data,
+				"image/jpeg",
 			},
 			want: nil,
 		},
@@ -69,22 +50,25 @@ func TestValidateUploadImageStream(t *testing.T) {
 			args: args{
 				nil,
 				data,
+				"image/jpeg",
 			},
 			want: apperrs.NewError(apperrs.BadRequest, apperrs.InvalidMetaInfoMsg),
 		},
 		{
 			name: "data is not exist on request",
 			args: args{
-				&image.Meta{Id: uuid.New().String()},
+				&image.Meta{Id: ulid.Make().String()},
 				[]byte{},
+				"image/jpeg",
 			},
 			want: apperrs.NewError(apperrs.BadRequest, apperrs.InvalidDataMsg),
 		},
 		{
 			name: "invalid file extension.",
 			args: args{
-				&image.Meta{Id: uuid.New().String()},
+				&image.Meta{Id: ulid.Make().String()},
 				invalidData,
+				"text/plain",
 			},
 			want: apperrs.NewError(apperrs.BadRequest, apperrs.InvalidFileExtMsg),
 		},
@@ -92,7 +76,7 @@ func TestValidateUploadImageStream(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidateUploadImageStream(tt.args.meta, tt.args.data)
+			err := ValidateUploadImageStream(tt.args.meta, tt.args.data, tt.args.contentType)
 			if tt.want != nil {
 				assert.EqualError(t, err, tt.want.Error())
 			} else {

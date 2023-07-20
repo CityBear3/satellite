@@ -4,6 +4,7 @@ import (
 	"github.com/CityBear3/satellite/pkg/apperrs"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 )
 
 func ConvertError(err error) error {
@@ -11,6 +12,7 @@ func ConvertError(err error) error {
 	case *apperrs.Error:
 		return convertAppErrToRPCError(err)
 	default:
+		log.Printf("Error: %s\n", err.Error())
 		return status.Error(codes.Unknown, "Unknown error occurred. Please call administrator if this error is not fixed.")
 	}
 }
@@ -22,6 +24,7 @@ func convertAppErrToRPCError(err *apperrs.Error) error {
 	case apperrs.BadRequest:
 		return status.Error(codes.InvalidArgument, err.Msg)
 	default:
+		log.Printf("Error: %s\n", err.Msg)
 		return status.Error(codes.Internal, "Unexpected error occurred. Please call administrator if this error is not fixed.")
 	}
 }

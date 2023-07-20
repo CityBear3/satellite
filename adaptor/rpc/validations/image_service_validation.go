@@ -3,18 +3,16 @@ package validations
 import (
 	"github.com/CityBear3/satellite/pb/image/v1"
 	"github.com/CityBear3/satellite/pkg/apperrs"
-	"net/http"
 )
 
 // ValidateUploadImageStream validate upload image stream
-func ValidateUploadImageStream(meta *image.Meta, data []byte) error {
+func ValidateUploadImageStream(meta *image.Meta, data []byte, contentType string) error {
 	if meta == nil {
 		return apperrs.NewError(apperrs.BadRequest, apperrs.InvalidMetaInfoMsg)
 	}
 	if len(data) == 0 {
 		return apperrs.NewError(apperrs.BadRequest, apperrs.InvalidDataMsg)
 	}
-	contentType := http.DetectContentType(data)
 	if !isAllowedContentType(contentType) {
 		return apperrs.NewError(apperrs.BadRequest, apperrs.InvalidFileExtMsg)
 	}

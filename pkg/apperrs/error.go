@@ -5,6 +5,16 @@ const (
 	BadRequest
 )
 
+const (
+	/*
+		BadRequestError Message
+	*/
+	InvalidMetaInfoMsg = "File meta info is invalid or empty."
+	InvalidDataMsg     = "File data is invalid or empty."
+	InvalidFileExtMsg  = "File extension must be jpeg or png."
+	InvalidFileSizeMSG = "File size limitation is %s."
+)
+
 type Error struct {
 	Code int
 	Msg  string
