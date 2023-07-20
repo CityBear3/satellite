@@ -28,16 +28,17 @@ func NewArchiveImageInteractor(archiveRepository model.IArchiveRepository, txMan
 
 // Handle do operation for upload image
 func (i *UploadArchiveInteractor) Handle(ctx context.Context, request dto.UploadArchiveRequest) error {
-	if err := i.txManager.DoInTx(ctx, func(context.Context) error {
+	if err := i.txManager.DoInTx(ctx, func(ctxWithTx context.Context) error {
 		archive := model.Archive{
-			Id:   request.Id,
-			Size: len(request.Data),
-			Ext:  getExt(request.ContentType),
+			Id:       request.Id,
+			Size:     len(request.Data),
+			Ext:      getExt(request.ContentType),
+			DeviceId: request.DeviceId,
 		}
 		if !archive.CheckDataSize(FileSizeLimitation) {
 			return apperrs.NewError(apperrs.BadRequest, fmt.Sprintf(apperrs.InvalidFileSizeMSG, "8MB"))
 		}
-		if err := i.archiveRepository.Save(ctx, archive); err != nil {
+		if err := i.archiveRepository.Save(ctxWithTx, archive); err != nil {
 			return err
 		}
 		return nil
