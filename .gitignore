@@ -27,6 +27,6 @@ go.work
 .env
 .envrc
 
-./docker/minio/data/
-./docker/mysql/db/
+docker/minio/data/**
+docker/mysql/db/**
 
