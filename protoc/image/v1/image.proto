@@ -13,6 +13,7 @@ service ImageService {
 
 message Meta {
   string id = 1;
+  string device_id = 2;
 }
 
 message UploadImageRequest {

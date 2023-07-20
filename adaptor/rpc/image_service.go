@@ -55,7 +55,12 @@ func (s ImageService) UploadImage(server image.ImageService_UploadImageServer) e
 		return convertors.ConvertError(err)
 	}
 
-	if err := s.uploadArchiveInteractor.Handle(ctx, dto.NewUploadArchiveRequest(id, contentType, data)); err != nil {
+	deviceID, err := ulid.Parse(meta.DeviceId)
+	if err != nil {
+		return convertors.ConvertError(err)
+	}
+
+	if err := s.uploadArchiveInteractor.Handle(ctx, dto.NewUploadArchiveRequest(id, contentType, data, deviceID)); err != nil {
 		return convertors.ConvertError(err)
 	}
 
