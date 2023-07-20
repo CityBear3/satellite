@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/CityBear3/satellite/driver"
 	"github.com/CityBear3/satellite/pkg/env"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
 
