@@ -6,7 +6,7 @@ import (
 )
 
 // ValidateUploadImageStream validate upload image stream
-func ValidateUploadImageStream(meta *image.Meta, data []byte, contentType string) error {
+func ValidateUploadImageStream(meta *imagePb.Meta, data []byte, contentType string) error {
 	if meta == nil {
 		return apperrs.NewError(apperrs.BadRequest, apperrs.InvalidMetaInfoMsg)
 	}

@@ -16,7 +16,7 @@ const (
 
 func TestValidateUploadImageStream(t *testing.T) {
 	type args struct {
-		meta        *image.Meta
+		meta        *imagePb.Meta
 		data        []byte
 		contentType string
 	}
@@ -39,7 +39,7 @@ func TestValidateUploadImageStream(t *testing.T) {
 		{
 			name: "no error occurred",
 			args: args{
-				&image.Meta{Id: ulid.Make().String()},
+				&imagePb.Meta{Id: ulid.Make().String()},
 				data,
 				"image/jpeg",
 			},
@@ -57,7 +57,7 @@ func TestValidateUploadImageStream(t *testing.T) {
 		{
 			name: "data is not exist on request",
 			args: args{
-				&image.Meta{Id: ulid.Make().String()},
+				&imagePb.Meta{Id: ulid.Make().String()},
 				[]byte{},
 				"image/jpeg",
 			},
@@ -66,7 +66,7 @@ func TestValidateUploadImageStream(t *testing.T) {
 		{
 			name: "invalid file extension.",
 			args: args{
-				&image.Meta{Id: ulid.Make().String()},
+				&imagePb.Meta{Id: ulid.Make().String()},
 				invalidData,
 				"text/plain",
 			},

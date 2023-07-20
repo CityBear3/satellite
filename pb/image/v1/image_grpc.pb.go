@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: image/v1/image.proto
 
-package image
+package imagePb
 
 import (
 	context "context"

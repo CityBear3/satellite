@@ -15,7 +15,7 @@ import (
 
 type ImageService struct {
 	uploadArchiveInteractor *archiveLogic.UploadArchiveInteractor
-	image.UnimplementedImageServiceServer
+	imagePb.UnimplementedImageServiceServer
 }
 
 func NewImageService() *ImageService {
@@ -24,9 +24,9 @@ func NewImageService() *ImageService {
 	}
 }
 
-func (s ImageService) UploadImage(server image.ImageService_UploadImageServer) error {
+func (s ImageService) UploadImage(server imagePb.ImageService_UploadImageServer) error {
 	ctx := server.Context()
-	var meta *image.Meta
+	var meta *imagePb.Meta
 	var data []byte
 	for {
 		request, err := server.Recv()
