@@ -14,19 +14,21 @@ import (
 )
 
 type Server struct {
+	host      string
 	port      int
 	isDevelop bool
 }
 
-func NewServer(port int, isDevelop bool) *Server {
+func NewServer(cfg ServerConfig) *Server {
 	return &Server{
-		port:      port,
-		isDevelop: isDevelop,
+		host:      cfg.Host,
+		port:      cfg.Port,
+		isDevelop: cfg.IsDevelop,
 	}
 }
 
 func (s *Server) Serve() error {
-	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", s.port))
+	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.host, s.port))
 	if err != nil {
 		return err
 	}
