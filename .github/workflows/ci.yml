@@ -40,9 +40,6 @@ jobs:
           MYSQL_HOST: localhost
           MYSQL_PORT: 3307
         run: |
-          curl -L https://packagecloud.io/golang-migrate/migrate/gpgkey | apt-key add -
-          echo "deb https://packagecloud.io/golang-migrate/migrate/ubuntu/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/migrate.list
-          apt-get update
-          apt-get install -y migrate
+          go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
           make migrate-up
           go test -v $(go list ./... | grep -v pb)
