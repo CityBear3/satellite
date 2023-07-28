@@ -13,10 +13,10 @@ gen-migration:
 	migrate create -ext sql -dir ./db/migration -seq ${MIGRATION}
 
 migrate-up:
-	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASS}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DBNAME}" --verbose up
+	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" --verbose up
 
 migrate-down:
-	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASS}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DBNAME}" --verbose down
+	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" --verbose down
 
 migrate-drop:
-	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASS}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DBNAME}" --verbose drop
+	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" --verbose drop
