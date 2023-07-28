@@ -40,5 +40,6 @@ jobs:
           MYSQL_HOST: mysql
           MYSQL_PORT: 3307
         run: |
+          sleep 10
           make migrate-up
           go test -v $(go list ./... | grep -v pb)
