@@ -24,6 +24,8 @@ jobs:
           MYSQL_DATABASE: satellite
           MYSQL_USER: satellite
           MYSQL_PASSWORD: satellite
+          MYSQL_ROOT_USER: satellite
+          MYSQL_ROOT_PASSWORD: satellite
         ports:
           - "3307:3306"
     steps:
