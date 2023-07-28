@@ -43,5 +43,6 @@ jobs:
           MYSQL_PORT: 3307
         run: |
           go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          sleep 20
           make migrate-up
           go test -v $(go list ./... | grep -v pb)
