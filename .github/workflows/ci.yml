@@ -37,7 +37,7 @@ jobs:
           MYSQL_DATABASE: satellite
           MYSQL_USER: satellite
           MYSQL_PASSWORD: satellite
-          MYSQL_HOST: mysql
+          MYSQL_HOST: localhost
           MYSQL_PORT: 3307
         run: |
           sleep 10
