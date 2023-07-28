@@ -1,0 +1,42 @@
+# docker compose config for develop
+services:
+  db-local:
+    build: ./docker/mysql
+    environment:
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+      - MYSQL_ROOT_USER
+      - MYSQL_ROOT_PASSWORD
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      #      - ./docker/mysql/conf.d:/etc/mysql/conf.d
+      #      - ./docker/mysql/log/local:/var/log/mysql
+      - ./docker/mysql/db:/var/lib/mysql
+
+  db-test:
+    build: ./docker/mysql
+    environment:
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+      - MYSQL_ROOT_USER
+      - MYSQL_ROOT_PASSWORD
+    ports:
+      - "3307:3306"
+  #    volumes:
+  #      - ./docker/mysql/conf.d:/etc/mysql/conf.d
+  #      - ./docker/mysql/log/test:/var/log/mysql
+  minio:
+    build:
+      ./docker/minio
+    environment:
+      - MINIO_ROOT_USER
+      - MINIO_ROOT_PASSWORD
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: [ "server", "/data", "--console-address", ":9001" ]
+    volumes:
+      - ./docker/minio/data:/data

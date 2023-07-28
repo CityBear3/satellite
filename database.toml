@@ -1,0 +1,2 @@
+[mysql]
+blacklist = ["schema_migrations", "*.created_at", "*.updated_at"]

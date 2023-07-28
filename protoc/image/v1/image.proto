@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package satellite.image.v1;
+
+option go_package = "github.com/CityBear3/satellite/pb/image/v1;imagePb";
+
+import "google/protobuf/empty.proto";
+
+service ImageService {
+  rpc UploadImage(stream UploadImageRequest) returns (google.protobuf.Empty) {}
+  rpc GetImage(GetImageRequest) returns (stream GetImageResponse) {}
+}
+
+message Meta {
+  string id = 1;
+  string device_id = 2;
+}
+
+message UploadImageRequest {
+  oneof value {
+    Meta meta = 1;
+    bytes chunk = 2;
+  }
+}
+
+message GetImageRequest {
+  string id = 1;
+}
+
+message GetImageResponse {
+  oneof value {
+    Meta meta = 1;
+    bytes chunk = 2;
+  }
+}

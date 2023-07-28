@@ -22,3 +22,11 @@ go.work
 
 # ide
 .idea
+
+# dotenv
+.env
+.envrc
+
+docker/minio/data/**
+docker/mysql/db/**
+
