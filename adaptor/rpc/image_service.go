@@ -4,9 +4,9 @@ import (
 	"github.com/CityBear3/satellite/adaptor/repository/mysql"
 	"github.com/CityBear3/satellite/adaptor/rpc/convertors"
 	"github.com/CityBear3/satellite/adaptor/rpc/validations"
-	"github.com/CityBear3/satellite/logic/dto"
-	archiveLogic "github.com/CityBear3/satellite/logic/interactor/archive"
 	"github.com/CityBear3/satellite/pb/image/v1"
+	"github.com/CityBear3/satellite/usecase/dto"
+	archiveLogic "github.com/CityBear3/satellite/usecase/interactor"
 	"github.com/oklog/ulid/v2"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
@@ -14,13 +14,13 @@ import (
 )
 
 type ImageService struct {
-	uploadArchiveInteractor *archiveLogic.UploadArchiveInteractor
+	uploadArchiveInteractor *archiveLogic.ArchiveInteractor
 	imagePb.UnimplementedImageServiceServer
 }
 
 func NewImageService() *ImageService {
 	return &ImageService{
-		uploadArchiveInteractor: archiveLogic.NewArchiveImageInteractor(mysql.NewArchiveRepository(), mysql.NewTxManger()),
+		uploadArchiveInteractor: archiveLogic.NewArchiveInteractor(mysql.NewArchiveRepository(), mysql.NewTxManger()),
 	}
 }
 
@@ -60,7 +60,7 @@ func (s ImageService) UploadImage(server imagePb.ImageService_UploadImageServer)
 		return convertors.ConvertError(err)
 	}
 
-	if err := s.uploadArchiveInteractor.Handle(ctx, dto.NewUploadArchiveRequest(id, contentType, data, deviceID)); err != nil {
+	if err := s.uploadArchiveInteractor.UploadArchive(ctx, dto.NewUploadArchiveRequest(id, contentType, data, deviceID)); err != nil {
 		return convertors.ConvertError(err)
 	}
 
