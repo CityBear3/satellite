@@ -14,7 +14,7 @@ jobs:
 
       - name: Build
         run: |
-          go build -v
+          go build -v ./cmd/server
   test:
     runs-on: ubuntu-latest
     services:
@@ -45,4 +45,4 @@ jobs:
           go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
           sleep 10
           make migrate-up
-          go test -v $(go list ./... | grep -v pb)
+          go test -v ./...
