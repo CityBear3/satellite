@@ -7,7 +7,7 @@ test:
 	go test -v ./...
 
 gen-schema:
-	sqlboiler mysql -c database.toml -o ./adaptor/repository/mysql/shcema -p schema --no-tests --wipe
+	sqlboiler mysql -c database.toml -o ./internal/adaptor/repository/mysql/shcema -p schema --no-tests --wipe
 
 gen-migration:
 	migrate create -ext sql -dir ./db/migration -seq ${MIGRATION}

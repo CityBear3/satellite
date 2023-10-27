@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package satellite.archive.v1;
+
+option go_package = "github.com/CityBear3/satellite/pb/archive/v1;archive";
+
+import "google/protobuf/empty.proto";
+
+service ArchiveService {
+  rpc CreateArchive(stream CreateArchiveRequest) returns (google.protobuf.Empty) {}
+  rpc GetArchive(GetArchiveRequest) returns (stream GetArchiveResponse) {}
+}
+
+message Meta {
+  string archive_event_id = 1;
+}
+
+message CreateArchiveRequest {
+  oneof value {
+    Meta meta = 1;
+    bytes chunk = 2;
+  }
+}
+
+message GetArchiveRequest {
+  string archive_event_id = 1;
+}
+
+message GetArchiveResponse {
+  oneof value {
+    Meta meta = 1;
+    bytes chunk = 2;
+  }
+}

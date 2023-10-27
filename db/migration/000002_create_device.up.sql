@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS `device`
 (
     `id`          CHAR(26)     NOT NULL,
     `name`        VARCHAR(255) NOT NULL,
-    `description` TEXT         NULL,
     `secret`      VARCHAR(255) NOT NULL,
     `client_id`   CHAR(26)     NOT NULL,
     `is_deleted`  BOOL                  DEFAULT FALSE,
