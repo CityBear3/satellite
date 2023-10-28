@@ -13,7 +13,6 @@ import (
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
 	"github.com/CityBear3/satellite/internal/usecase/interactor"
 	"github.com/CityBear3/satellite/pb/archive/v1"
-	grpcAuth "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	grpcLog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -68,6 +67,7 @@ func (s *Server) Serve() error {
 	archiveRepository := mysql.NewArchiveRepository(db)
 	eventRepository := mysql.NewEventRepository(db)
 	deviceRepository := mysql.NewDeviceRepository(db)
+	clientRepository := mysql.NewClientRepository(db)
 
 	// interactor
 	archiveInteractor := interactor.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
@@ -77,18 +77,19 @@ func (s *Server) Serve() error {
 
 	// interceptor
 	authenticationInterceptor := middlewares.NewAuthenticationInterceptor(logger, s.cfg.AuthConfig.HMACSecret, deviceRepository)
+	authorizationInterceptor := middlewares.NewAuthorizationInterceptor(logger, deviceRepository, clientRepository)
 	loggingInterceptor := middlewares.NewLoggingInterceptor(logger)
 
 	server := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			grpcLog.UnaryServerInterceptor(loggingInterceptor.Logger(), logOption...),
-			grpcAuth.UnaryServerInterceptor(authenticationInterceptor.AuthFunc),
-			authenticationInterceptor.Authorization(),
+			authenticationInterceptor.Authentication(),
+			authorizationInterceptor.Authorization(),
 		),
 		grpc.ChainStreamInterceptor(
 			grpcLog.StreamServerInterceptor(loggingInterceptor.Logger(), logOption...),
-			grpcAuth.StreamServerInterceptor(authenticationInterceptor.AuthFunc),
-			authenticationInterceptor.AuthorizationStream(),
+			authenticationInterceptor.AuthenticationStream(),
+			authorizationInterceptor.AuthorizationStream(),
 		),
 	)
 

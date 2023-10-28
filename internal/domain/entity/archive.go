@@ -1,7 +1,10 @@
 package entity
 
 import (
+	"slices"
+
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 )
 
 type Archive struct {
@@ -18,4 +21,17 @@ func NewArchive(id primitive.ID, archiveEventID primitive.ID, contentType primit
 		ArchiveEventID: archiveEventID,
 		DeviceID:       deviceId,
 	}
+}
+
+func (a Archive) CheckCorrectCall(client Client) error {
+	var deviceIDs []primitive.ID
+	for _, device := range client.Devices {
+		deviceIDs = append(deviceIDs, device.ID)
+	}
+
+	if !slices.Contains(deviceIDs, a.DeviceID) {
+		return apperrs.InvalidClientCallingArchiveError
+	}
+
+	return nil
 }

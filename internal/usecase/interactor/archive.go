@@ -70,8 +70,11 @@ func (i *ArchiveInteractor) CreateArchive(
 }
 
 // GetArchive do operation for get archive
-// TODO: check correct client in domain logic
-func (i *ArchiveInteractor) GetArchive(ctx context.Context, request dto.GetArchiveRequest) (dto.GetArchiveResult, error) {
+func (i *ArchiveInteractor) GetArchive(
+	ctx context.Context,
+	request dto.GetArchiveRequest,
+	client entity.Client,
+) (dto.GetArchiveResult, error) {
 	archiveEventID, err := primitive.ParseID(request.ArchiveEventID)
 	if err != nil {
 		return dto.GetArchiveResult{}, err
@@ -79,6 +82,10 @@ func (i *ArchiveInteractor) GetArchive(ctx context.Context, request dto.GetArchi
 
 	archive, err := i.archiveRepository.GetArchiveByArchiveEventID(ctx, archiveEventID)
 	if err != nil {
+		return dto.GetArchiveResult{}, err
+	}
+
+	if err = archive.CheckCorrectCall(client); err != nil {
 		return dto.GetArchiveResult{}, err
 	}
 

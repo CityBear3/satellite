@@ -6,8 +6,6 @@ import (
 
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/convertors"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/validations"
-	"github.com/CityBear3/satellite/internal/domain/entity"
-	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/internal/usecase/dto"
 	"github.com/CityBear3/satellite/pb/archive/v1"
@@ -31,9 +29,9 @@ func NewArchiveRPCService(logger *zap.Logger, archiveInteractor usecase.ArchiveU
 func (s ArchiveRPCService) CreateArchive(server archive.ArchiveService_CreateArchiveServer) error {
 	ctx := server.Context()
 
-	device, ok := ctx.Value("device").(entity.Device)
-	if !ok {
-		return convertors.ConvertError(s.logger, apperrs.UnexpectedError)
+	device, err := AuthenticatedDevice(ctx)
+	if err != nil {
+		return convertors.ConvertError(s.logger, err)
 	}
 
 	var meta *archive.Meta
@@ -80,9 +78,14 @@ func (s ArchiveRPCService) CreateArchive(server archive.ArchiveService_CreateArc
 func (s ArchiveRPCService) GetArchive(request *archive.GetArchiveRequest, server archive.ArchiveService_GetArchiveServer) error {
 	ctx := server.Context()
 
+	client, err := AuthenticatedClient(ctx)
+	if err != nil {
+		return convertors.ConvertError(s.logger, err)
+	}
+
 	getArchiveRequest := dto.GetArchiveRequest{ArchiveEventID: request.ArchiveEventId}
 
-	result, err := s.uploadArchiveInteractor.GetArchive(ctx, getArchiveRequest)
+	result, err := s.uploadArchiveInteractor.GetArchive(ctx, getArchiveRequest, client)
 	if err != nil {
 		return convertors.ConvertError(s.logger, err)
 	}
