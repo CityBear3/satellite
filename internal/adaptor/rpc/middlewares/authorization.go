@@ -68,7 +68,7 @@ func (i AuthorizationInterceptor) AuthorizationStream() grpc.StreamServerInterce
 func (i AuthorizationInterceptor) authorization(ctx context.Context, method string) (context.Context, error) {
 	switch method {
 	// device
-	case "/satellite.archive.v1.ArchiveService/CreateArchive", "/satellite.event.v1.EventService/ReceiveEvent":
+	case "/satellite.archive.v1.ArchiveService/CreateArchive", "/satellite.event.v1.ArchiveEventService/ReceiveEvent":
 		id, err := getID(ctx)
 		if err != nil {
 			return nil, apperrs.UnauthenticatedError
@@ -81,7 +81,7 @@ func (i AuthorizationInterceptor) authorization(ctx context.Context, method stri
 
 		return context.WithValue(ctx, "device", device), nil
 	// client
-	case "/satellite.archive.v1.ArchiveService/GetArchive":
+	case "/satellite.archive.v1.ArchiveService/GetArchive", "/satellite.event.v1.ArchiveEventService/PublishEvent":
 		id, err := getID(ctx)
 		if err != nil {
 			return nil, apperrs.UnauthenticatedError

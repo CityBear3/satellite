@@ -54,7 +54,7 @@ func (i AuthenticationInterceptor) AuthenticationStream() grpc.StreamServerInter
 		wrappedServerStream := middleware.WrapServerStream(ss)
 		wrappedServerStream.WrappedContext = ctx
 
-		return handler(wrappedServerStream, wrappedServerStream)
+		return handler(srv, wrappedServerStream)
 	}
 }
 
