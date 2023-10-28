@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ArchiveEventServiceClient interface {
+	PublishEvent(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PublishEventResponse, error)
 	ReceiveEvent(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (ArchiveEventService_ReceiveEventClient, error)
 }
 
@@ -32,6 +33,15 @@ type archiveEventServiceClient struct {
 
 func NewArchiveEventServiceClient(cc grpc.ClientConnInterface) ArchiveEventServiceClient {
 	return &archiveEventServiceClient{cc}
+}
+
+func (c *archiveEventServiceClient) PublishEvent(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PublishEventResponse, error) {
+	out := new(PublishEventResponse)
+	err := c.cc.Invoke(ctx, "/satellite.event.v1.ArchiveEventService/PublishEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *archiveEventServiceClient) ReceiveEvent(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (ArchiveEventService_ReceiveEventClient, error) {
@@ -70,6 +80,7 @@ func (x *archiveEventServiceReceiveEventClient) Recv() (*ArchiveEvent, error) {
 // All implementations must embed UnimplementedArchiveEventServiceServer
 // for forward compatibility
 type ArchiveEventServiceServer interface {
+	PublishEvent(context.Context, *emptypb.Empty) (*PublishEventResponse, error)
 	ReceiveEvent(*emptypb.Empty, ArchiveEventService_ReceiveEventServer) error
 	mustEmbedUnimplementedArchiveEventServiceServer()
 }
@@ -78,6 +89,9 @@ type ArchiveEventServiceServer interface {
 type UnimplementedArchiveEventServiceServer struct {
 }
 
+func (UnimplementedArchiveEventServiceServer) PublishEvent(context.Context, *emptypb.Empty) (*PublishEventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishEvent not implemented")
+}
 func (UnimplementedArchiveEventServiceServer) ReceiveEvent(*emptypb.Empty, ArchiveEventService_ReceiveEventServer) error {
 	return status.Errorf(codes.Unimplemented, "method ReceiveEvent not implemented")
 }
@@ -92,6 +106,24 @@ type UnsafeArchiveEventServiceServer interface {
 
 func RegisterArchiveEventServiceServer(s grpc.ServiceRegistrar, srv ArchiveEventServiceServer) {
 	s.RegisterService(&ArchiveEventService_ServiceDesc, srv)
+}
+
+func _ArchiveEventService_PublishEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArchiveEventServiceServer).PublishEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/satellite.event.v1.ArchiveEventService/PublishEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArchiveEventServiceServer).PublishEvent(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ArchiveEventService_ReceiveEvent_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -121,7 +153,12 @@ func (x *archiveEventServiceReceiveEventServer) Send(m *ArchiveEvent) error {
 var ArchiveEventService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "satellite.event.v1.ArchiveEventService",
 	HandlerType: (*ArchiveEventServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "PublishEvent",
+			Handler:    _ArchiveEventService_PublishEvent_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "ReceiveEvent",

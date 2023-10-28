@@ -1,36 +1,62 @@
 package rpc
 
 import (
+	"context"
+
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/convertors"
-	"github.com/CityBear3/satellite/internal/domain/entity"
-	"github.com/CityBear3/satellite/internal/pkg/apperrs"
+	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/event/v1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type EventRPCService struct {
-	logger       *zap.Logger
-	eventHandler entity.IArchiveEventHandler
+	logger          *zap.Logger
+	eventInteractor usecase.IEventUseCase
 	event.UnimplementedArchiveEventServiceServer
 }
 
-func (s EventRPCService) ReceiveEvent(_ *emptypb.Empty, server event.ArchiveEventService_ReceiveEventServer) error {
+func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.IEventUseCase) *EventRPCService {
+	return &EventRPCService{
+		logger:          logger,
+		eventInteractor: eventInteractor,
+	}
+}
+
+func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (*event.PublishEventResponse, error) {
+	client, err := AuthenticatedClient(ctx)
+	if err != nil {
+		return nil, convertors.ConvertError(s.logger, err)
+	}
+
+	archiveEventID, err := s.eventInteractor.PublishArchiveEvent(ctx, client)
+	if err != nil {
+		return nil, convertors.ConvertError(s.logger, err)
+	}
+
+	return &event.PublishEventResponse{
+		ArchiveEventId: archiveEventID.Value().String(),
+	}, nil
+}
+
+func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server event.ArchiveEventService_ReceiveEventServer) error {
 	ctx := server.Context()
 
 	device, err := AuthenticatedDevice(ctx)
 	if err != nil {
-		return convertors.ConvertError(s.logger, apperrs.ForbiddenError)
+		return convertors.ConvertError(s.logger, err)
 	}
 
-	archiveEvents, err := s.eventHandler.ReceiveArchiveEvent(ctx, device.ID)
+	archiveEvents, err := s.eventInteractor.ReceiveArchiveEvent(ctx, device)
 	if err != nil {
 		return convertors.ConvertError(s.logger, err)
 	}
 
 	for archiveEvent := range archiveEvents {
+		archiveEventID := archiveEvent.ID
+		s.logger.Info("event received", zap.String("archive_event_id", archiveEventID))
 		archiveEventResponse := &event.ArchiveEvent{
-			ArchiveEventId: archiveEvent.ID.Value().String(),
+			ArchiveEventId: archiveEventID,
 		}
 
 		if err := server.Send(archiveEventResponse); err != nil {
