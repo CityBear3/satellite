@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"context"
 	"time"
 
 	"github.com/CityBear3/satellite/internal/domain/primitive"
@@ -37,4 +38,9 @@ func (a ArchiveEvent) CheckCorrectCall(deviceID, clientID primitive.ID, now time
 	}
 
 	return nil
+}
+
+type IArchiveEventHandler interface {
+	PublishArchiveEvent(ctx context.Context, event ArchiveEvent) error
+	ReceiveArchiveEvent(ctx context.Context, deviceID primitive.ID) (<-chan ArchiveEvent, error)
 }
