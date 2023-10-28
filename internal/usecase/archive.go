@@ -10,5 +10,5 @@ import (
 
 type ArchiveUseCase interface {
 	CreateArchive(ctx context.Context, request dto.UploadArchiveRequest, device entity.Device) error
-	GetArchive(ctx context.Context, request dto.GetArchiveRequest) (dto.GetArchiveResult, error)
+	GetArchive(ctx context.Context, request dto.GetArchiveRequest, client entity.Client) (dto.GetArchiveResult, error)
 }
