@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/CityBear3/satellite/internal/adaptor/event/rabbitmq"
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
@@ -19,6 +20,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -94,6 +96,11 @@ func (s *Server) Serve() error {
 	authorizationInterceptor := middlewares.NewAuthorizationInterceptor(logger, deviceRepository, clientRepository)
 	loggingInterceptor := middlewares.NewLoggingInterceptor(logger)
 
+	serverParameters := keepalive.ServerParameters{
+		Time:    10 * time.Second,
+		Timeout: 5 * time.Second,
+	}
+
 	server := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			grpcLog.UnaryServerInterceptor(loggingInterceptor.Logger(), logOption...),
@@ -105,6 +112,7 @@ func (s *Server) Serve() error {
 			authenticationInterceptor.AuthenticationStream(),
 			authorizationInterceptor.AuthorizationStream(),
 		),
+		grpc.KeepaliveParams(serverParameters),
 	)
 
 	archive.RegisterArchiveServiceServer(server, archiveRPCService)
