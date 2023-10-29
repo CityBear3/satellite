@@ -8,6 +8,7 @@ import (
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
 	"github.com/stretchr/testify/assert"
@@ -133,12 +134,6 @@ func TestEventRepository_GetArchiveEvent(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	sut := NewEventRepository(tx)
 
 	archiveEventID := primitive.NewID()
 	deviceID := primitive.NewID()
@@ -171,9 +166,24 @@ func TestEventRepository_GetArchiveEvent(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "not found event",
+			args: args{
+				ctx:            ctx,
+				archiveEventID: primitive.NewID(),
+			},
+			expectedErr: apperrs.NotFoundArchiveEventError,
+		},
 	}
 
 	for _, tt := range tests {
+		tx, err := db.BeginTx(ctx, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		sut := NewEventRepository(tx)
+
 		for _, operator := range tt.tables {
 			if err := operator.Insert(tt.args.ctx, tx); err != nil {
 				t.Error(err)

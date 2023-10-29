@@ -8,12 +8,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/CityBear3/satellite/internal/adaptor/event/rabbitmq"
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
 	"github.com/CityBear3/satellite/internal/usecase/interactor"
 	"github.com/CityBear3/satellite/pb/archive/v1"
+	"github.com/CityBear3/satellite/pb/event/v1"
 	grpcLog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -69,11 +72,22 @@ func (s *Server) Serve() error {
 	deviceRepository := mysql.NewDeviceRepository(db)
 	clientRepository := mysql.NewClientRepository(db)
 
+	// event handler
+	rqConf := s.cfg.RabbitMQConfig
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d/", rqConf.User, rqConf.Password, rqConf.Host, rqConf.Port))
+	if err != nil {
+		return err
+	}
+
+	eventHandler := rabbitmq.NewEventHandler(logger, conn)
+
 	// interactor
 	archiveInteractor := interactor.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
+	eventInteractor := interactor.NewEventInteractor(eventRepository, eventHandler, txManager)
 
 	// rpc service
 	archiveRPCService := rpc.NewArchiveRPCService(logger, archiveInteractor)
+	eventRPCService := rpc.NewEventRPCService(logger, eventInteractor)
 
 	// interceptor
 	authenticationInterceptor := middlewares.NewAuthenticationInterceptor(logger, s.cfg.AuthConfig.HMACSecret, deviceRepository)
@@ -94,6 +108,7 @@ func (s *Server) Serve() error {
 	)
 
 	archive.RegisterArchiveServiceServer(server, archiveRPCService)
+	event.RegisterArchiveEventServiceServer(server, eventRPCService)
 
 	if serverCfg.IsDevelop {
 		reflection.Register(server)

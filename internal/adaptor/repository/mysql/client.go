@@ -7,6 +7,7 @@ import (
 	schema "github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/friendsofgo/errors"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -29,7 +30,7 @@ func (i *ClientRepository) GetClient(ctx context.Context, clientID primitive.ID)
 	).One(ctx, i.db)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return entity.Client{}, err
+		return entity.Client{}, apperrs.NotFoundClientError
 	}
 
 	if err != nil {

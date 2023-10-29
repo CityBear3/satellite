@@ -46,7 +46,7 @@ func (r *EventRepository) SaveArchiveEvent(ctx context.Context, rtx repository.I
 func (r *EventRepository) GetArchiveEvent(ctx context.Context, archiveEventID primitive.ID) (entity.ArchiveEvent, error) {
 	event, err := schema.ArchiveEvents(schema.ArchiveEventWhere.ID.EQ(archiveEventID.Value().String())).One(ctx, r.db)
 	if errors.Is(err, sql.ErrNoRows) {
-		return entity.ArchiveEvent{}, apperrs.NotFoundArchiveError
+		return entity.ArchiveEvent{}, apperrs.NotFoundArchiveEventError
 	}
 
 	if err != nil {

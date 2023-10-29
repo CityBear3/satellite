@@ -5,9 +5,10 @@ import (
 )
 
 type Config struct {
-	DBConfig     DBConfig
-	ServerConfig ServerConfig
-	AuthConfig   AuthConfig
+	DBConfig       DBConfig
+	ServerConfig   ServerConfig
+	AuthConfig     AuthConfig
+	RabbitMQConfig RabbitMQConfig
 }
 
 type DBConfig struct {
@@ -32,6 +33,13 @@ type ServerConfig struct {
 
 type AuthConfig struct {
 	HMACSecret string `env:"HMAC_SECRET"`
+}
+
+type RabbitMQConfig struct {
+	Host     string `env:"RABBITMQ_HOST" envDefault:"localhost"`
+	Port     int    `env:"RABBITMQ_PORT" envDefault:"5672"`
+	User     string `env:"RABBITMQ_USER" envDefault:"satellite"`
+	Password string `env:"RABBITMQ_PASSWORD" envDefault:"satellite"`
 }
 
 func LoadConfig(config *Config) error {

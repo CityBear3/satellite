@@ -7,6 +7,7 @@ import (
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
 	"github.com/stretchr/testify/assert"
@@ -83,6 +84,14 @@ func TestClientRepository_GetClient(t *testing.T) {
 					ClientId: clientID.Value().String(),
 				},
 			},
+		},
+		{
+			name: "not found client",
+			args: args{
+				ctx:      ctx,
+				clientID: primitive.NewID(),
+			},
+			expectedErr: apperrs.NotFoundClientError,
 		},
 	}
 

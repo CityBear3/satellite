@@ -13,8 +13,10 @@ var (
 
 // NotFound
 var (
-	NotFoundArchiveError = NewError(NotFound, "The Archive is not exist.")
-	NotFoundDeviceError  = NewError(NotFound, "The Device is not exist.")
+	NotFoundArchiveError      = NewError(NotFound, "The Archive is not exist.")
+	NotFoundArchiveEventError = NewError(NotFound, "The ArchiveEvent is not exist.")
+	NotFoundClientError       = NewError(NotFound, "The Client is not exist.")
+	NotFoundDeviceError       = NewError(NotFound, "The Device is not exist.")
 )
 
 // Unauthenticated
