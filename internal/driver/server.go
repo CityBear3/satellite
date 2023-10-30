@@ -15,6 +15,7 @@ import (
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
 	"github.com/CityBear3/satellite/internal/usecase/interactor"
 	"github.com/CityBear3/satellite/pb/archive/v1"
+	"github.com/CityBear3/satellite/pb/authentication/v1"
 	"github.com/CityBear3/satellite/pb/event/v1"
 	grpcLog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -86,10 +87,12 @@ func (s *Server) Serve() error {
 	// interactor
 	archiveInteractor := interactor.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
 	eventInteractor := interactor.NewEventInteractor(eventRepository, eventHandler, txManager)
+	authenticationInteractor := interactor.NewAuthenticationInteractor(clientRepository, deviceRepository)
 
 	// rpc service
 	archiveRPCService := rpc.NewArchiveRPCService(logger, archiveInteractor)
 	eventRPCService := rpc.NewEventRPCService(logger, eventInteractor)
+	authenticationRPCService := rpc.NewAuthenticationRPCService(logger, authenticationInteractor, s.cfg.AuthConfig.HMACSecret)
 
 	// interceptor
 	authenticationInterceptor := middlewares.NewAuthenticationInterceptor(logger, s.cfg.AuthConfig.HMACSecret, deviceRepository)
@@ -117,6 +120,7 @@ func (s *Server) Serve() error {
 
 	archive.RegisterArchiveServiceServer(server, archiveRPCService)
 	event.RegisterArchiveEventServiceServer(server, eventRPCService)
+	authentication.RegisterAuthenticationServiceServer(server, authenticationRPCService)
 
 	if serverCfg.IsDevelop {
 		reflection.Register(server)

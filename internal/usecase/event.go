@@ -8,7 +8,7 @@ import (
 	"github.com/CityBear3/satellite/internal/usecase/dto"
 )
 
-type IEventUseCase interface {
+type EventUseCase interface {
 	PublishArchiveEvent(ctx context.Context, client entity.Client) (primitive.ID, error)
 	ReceiveArchiveEvent(ctx context.Context, device entity.Device) (<-chan dto.ArchiveEventMessage, error)
 }

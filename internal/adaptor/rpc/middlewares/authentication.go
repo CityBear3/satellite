@@ -58,40 +58,46 @@ func (i AuthenticationInterceptor) AuthenticationStream() grpc.StreamServerInter
 	}
 }
 
-// TODO: some method skip this.
 func (i AuthenticationInterceptor) authentication(ctx context.Context, method string) (context.Context, error) {
-	tokenString, err := grpcAuth.AuthFromMD(ctx, "bearer")
-	if err != nil {
-		return nil, apperrs.UnauthenticatedError
-	}
-
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+	switch method {
+	case "/satellite.authentication.v1.AuthenticationService/AuthenticateClient",
+		"/satellite.authentication.v1.AuthenticationService/AuthenticateDevice":
+		return ctx, nil
+	default:
+		tokenString, err := grpcAuth.AuthFromMD(ctx, "bearer")
+		if err != nil {
 			return nil, apperrs.UnauthenticatedError
 		}
 
-		return []byte(i.HMACSecret), nil
-	})
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, apperrs.UnauthenticatedError
+			}
 
-	if err != nil {
-		return nil, apperrs.UnauthenticatedError
-	}
+			return []byte(i.HMACSecret), nil
+		})
 
-	var id string
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		id, ok = claims["sub"].(string)
-		if !ok {
-			return nil, apperrs.UnexpectedError
-		}
-
-		if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+		if err != nil {
+			i.logger.Error(err.Error())
 			return nil, apperrs.UnauthenticatedError
 		}
 
-	} else {
-		return nil, apperrs.UnauthenticatedError
-	}
+		var id string
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			id, ok = claims["sub"].(string)
+			if !ok {
+				return nil, apperrs.UnexpectedError
+			}
 
-	ctx = context.WithValue(ctx, "id", id)
-	return ctx, nil
+			if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+				return nil, apperrs.UnauthenticatedError
+			}
+
+		} else {
+			return nil, apperrs.UnauthenticatedError
+		}
+
+		ctx = context.WithValue(ctx, "id", id)
+		return ctx, nil
+	}
 }
