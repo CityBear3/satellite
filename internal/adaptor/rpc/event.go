@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/convertors"
+	"github.com/CityBear3/satellite/internal/pkg/auth"
 	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/event/v1"
 	"go.uber.org/zap"
@@ -12,11 +13,11 @@ import (
 
 type EventRPCService struct {
 	logger          *zap.Logger
-	eventInteractor usecase.IEventUseCase
+	eventInteractor usecase.EventUseCase
 	event.UnimplementedArchiveEventServiceServer
 }
 
-func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.IEventUseCase) *EventRPCService {
+func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.EventUseCase) *EventRPCService {
 	return &EventRPCService{
 		logger:          logger,
 		eventInteractor: eventInteractor,
@@ -24,7 +25,7 @@ func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.IEventUseCas
 }
 
 func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (*event.PublishEventResponse, error) {
-	client, err := AuthenticatedClient(ctx)
+	client, err := auth.AuthenticatedClient(ctx)
 	if err != nil {
 		return nil, convertors.ConvertError(s.logger, err)
 	}
@@ -42,7 +43,7 @@ func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (
 func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server event.ArchiveEventService_ReceiveEventServer) error {
 	ctx := server.Context()
 
-	device, err := AuthenticatedDevice(ctx)
+	device, err := auth.AuthenticatedDevice(ctx)
 	if err != nil {
 		return convertors.ConvertError(s.logger, err)
 	}
