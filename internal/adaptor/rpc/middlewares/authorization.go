@@ -93,6 +93,9 @@ func (i AuthorizationInterceptor) authorization(ctx context.Context, method stri
 		}
 
 		return context.WithValue(ctx, "client", client), nil
+	case "/satellite.authentication.v1.AuthenticationService/AuthenticateClient",
+		"/satellite.authentication.v1.AuthenticationService/AuthenticateDevice":
+		return ctx, nil
 	default:
 		return nil, convertors.ConvertError(i.logger, apperrs.UnexpectedError)
 	}

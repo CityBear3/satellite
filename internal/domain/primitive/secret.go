@@ -46,3 +46,35 @@ func (s *HashedSecret) checkReadOnce() error {
 
 	return nil
 }
+
+type RowSecret struct {
+	value    string
+	once     sync.Once
+	consumed bool
+}
+
+func NewRowSecret(value string) *RowSecret {
+	return &RowSecret{
+		value: value,
+	}
+}
+
+func (s *RowSecret) Value() (string, error) {
+	if err := s.checkReadOnce(); err != nil {
+		return "", err
+	}
+
+	return s.value, nil
+}
+
+func (s *RowSecret) checkReadOnce() error {
+	if s.consumed {
+		return apperrs.UnexpectedError
+	}
+
+	s.once.Do(func() {
+		s.consumed = true
+	})
+
+	return nil
+}
