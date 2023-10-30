@@ -9,7 +9,7 @@ import (
 const maxDataSize = 5e6
 
 // ValidateCreateArchive validate upload image stream
-func ValidateCreateArchive(meta *archive.Meta, data []byte) error {
+func ValidateCreateArchive(meta *archive.CreateArchiveMetaInfo, data []byte) error {
 	if meta == nil {
 		return apperrs.InvalidMetaInfoError
 	}

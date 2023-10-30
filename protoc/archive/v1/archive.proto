@@ -11,13 +11,19 @@ service ArchiveService {
   rpc GetArchive(GetArchiveRequest) returns (stream GetArchiveResponse) {}
 }
 
-message Meta {
+message CreateArchiveMetaInfo {
   string archive_event_id = 1;
+}
+
+message GetArchiveMetaInfo {
+  string archive_id = 1;
+  string content_type = 2;
+  int64 size = 3;
 }
 
 message CreateArchiveRequest {
   oneof value {
-    Meta meta = 1;
+    CreateArchiveMetaInfo meta = 1;
     bytes chunk = 2;
   }
 }
@@ -28,7 +34,7 @@ message GetArchiveRequest {
 
 message GetArchiveResponse {
   oneof value {
-    Meta meta = 1;
+    GetArchiveMetaInfo meta = 1;
     bytes chunk = 2;
   }
 }

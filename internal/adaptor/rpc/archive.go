@@ -34,13 +34,14 @@ func (s ArchiveRPCService) CreateArchive(server archive.ArchiveService_CreateArc
 		return convertors.ConvertError(s.logger, err)
 	}
 
-	var meta *archive.Meta
+	var meta *archive.CreateArchiveMetaInfo
 	var data []byte
 	for {
 		request, err := server.Recv()
 		if err == io.EOF {
 			break
 		}
+
 		if err != nil {
 			return convertors.ConvertError(s.logger, err)
 		}
@@ -91,8 +92,10 @@ func (s ArchiveRPCService) GetArchive(request *archive.GetArchiveRequest, server
 	}
 
 	if err = server.Send(&archive.GetArchiveResponse{Value: &archive.GetArchiveResponse_Meta{
-		Meta: &archive.Meta{
-			ArchiveEventId: result.ID.String(),
+		Meta: &archive.GetArchiveMetaInfo{
+			ArchiveId:   result.ID.String(),
+			ContentType: result.ContentType,
+			Size:        int64(result.Size),
 		},
 	}}); err != nil {
 		return convertors.ConvertError(s.logger, err)
