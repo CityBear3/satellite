@@ -20,4 +20,5 @@ type GetArchiveResult struct {
 	ContentType    string
 	DeviceID       ulid.ULID
 	Data           []byte
+	Size           int
 }

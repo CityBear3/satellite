@@ -17,7 +17,7 @@ const (
 
 func TestValidateCreateArchive(t *testing.T) {
 	type args struct {
-		meta        *archive.Meta
+		meta        *archive.CreateArchiveMetaInfo
 		data        []byte
 		contentType string
 	}
@@ -40,7 +40,7 @@ func TestValidateCreateArchive(t *testing.T) {
 		{
 			name: "no error occurred",
 			args: args{
-				&archive.Meta{ArchiveEventId: ulid.Make().String()},
+				&archive.CreateArchiveMetaInfo{ArchiveEventId: ulid.Make().String()},
 				data,
 				"image/jpeg",
 			},
@@ -58,7 +58,7 @@ func TestValidateCreateArchive(t *testing.T) {
 		{
 			name: "data is not exist on request",
 			args: args{
-				&archive.Meta{ArchiveEventId: ulid.Make().String()},
+				&archive.CreateArchiveMetaInfo{ArchiveEventId: ulid.Make().String()},
 				[]byte{},
 				"image/jpeg",
 			},
@@ -67,7 +67,7 @@ func TestValidateCreateArchive(t *testing.T) {
 		{
 			name: "invalid data size",
 			args: args{
-				&archive.Meta{ArchiveEventId: ulid.Make().String()},
+				&archive.CreateArchiveMetaInfo{ArchiveEventId: ulid.Make().String()},
 				[]byte{},
 				"image/jpeg",
 			},
