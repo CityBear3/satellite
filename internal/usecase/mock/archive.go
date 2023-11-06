@@ -13,7 +13,7 @@ import (
 	reflect "reflect"
 
 	entity "github.com/CityBear3/satellite/internal/domain/entity"
-	dto "github.com/CityBear3/satellite/internal/usecase/dto"
+	usecase "github.com/CityBear3/satellite/internal/usecase"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -41,7 +41,7 @@ func (m *MockArchiveUseCase) EXPECT() *MockArchiveUseCaseMockRecorder {
 }
 
 // CreateArchive mocks base method.
-func (m *MockArchiveUseCase) CreateArchive(ctx context.Context, request dto.UploadArchiveRequest, device entity.Device) error {
+func (m *MockArchiveUseCase) CreateArchive(ctx context.Context, request usecase.CreateArchiveRequest, device entity.Device) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateArchive", ctx, request, device)
 	ret0, _ := ret[0].(error)
@@ -55,10 +55,10 @@ func (mr *MockArchiveUseCaseMockRecorder) CreateArchive(ctx, request, device any
 }
 
 // GetArchive mocks base method.
-func (m *MockArchiveUseCase) GetArchive(ctx context.Context, request dto.GetArchiveRequest, client entity.Client) (dto.GetArchiveResult, error) {
+func (m *MockArchiveUseCase) GetArchive(ctx context.Context, request usecase.GetArchiveRequest, client entity.Client) (usecase.GetArchiveResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetArchive", ctx, request, client)
-	ret0, _ := ret[0].(dto.GetArchiveResult)
+	ret0, _ := ret[0].(usecase.GetArchiveResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

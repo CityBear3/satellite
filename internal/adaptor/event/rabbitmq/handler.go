@@ -7,7 +7,7 @@ import (
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
-	"github.com/CityBear3/satellite/internal/usecase/dto"
+	"github.com/CityBear3/satellite/internal/usecase"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 )
@@ -44,7 +44,7 @@ func (h EventHandler) PublishArchiveEvent(ctx context.Context, event entity.Arch
 		return err
 	}
 
-	body, err := json.Marshal(dto.ArchiveEventMessage{
+	body, err := json.Marshal(usecase.ArchiveEventMessage{
 		ID:       event.ID.Value().String(),
 		ClientID: event.ClientID.Value().String(),
 	})
@@ -63,7 +63,7 @@ func (h EventHandler) PublishArchiveEvent(ctx context.Context, event entity.Arch
 	return nil
 }
 
-func (h EventHandler) ReceiveArchiveEvent(ctx context.Context, deviceID primitive.ID) (<-chan dto.ArchiveEventMessage, error) {
+func (h EventHandler) ReceiveArchiveEvent(ctx context.Context, deviceID primitive.ID) (<-chan usecase.ArchiveEventMessage, error) {
 	ch, err := h.conn.Channel()
 	if err != nil {
 		return nil, err
@@ -104,9 +104,9 @@ func (h EventHandler) ReceiveArchiveEvent(ctx context.Context, deviceID primitiv
 		return nil, err
 	}
 
-	subscribe := make(chan dto.ArchiveEventMessage, 10000)
+	subscribe := make(chan usecase.ArchiveEventMessage, 10000)
 	go func() {
-		var message dto.ArchiveEventMessage
+		var message usecase.ArchiveEventMessage
 		for m := range messages {
 			select {
 			case <-ctx.Done():

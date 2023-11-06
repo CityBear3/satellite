@@ -4,7 +4,7 @@
 // - protoc             v4.24.3
 // source: archive/v1/archive.proto
 
-package archive
+package archivePb
 
 import (
 	context "context"

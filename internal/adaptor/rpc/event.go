@@ -14,7 +14,7 @@ import (
 type EventRPCService struct {
 	logger          *zap.Logger
 	eventInteractor usecase.EventUseCase
-	event.UnimplementedArchiveEventServiceServer
+	eventPb.UnimplementedArchiveEventServiceServer
 }
 
 func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.EventUseCase) *EventRPCService {
@@ -24,7 +24,7 @@ func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.EventUseCase
 	}
 }
 
-func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (*event.PublishEventResponse, error) {
+func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (*eventPb.PublishEventResponse, error) {
 	client, err := auth.AuthenticatedClient(ctx)
 	if err != nil {
 		return nil, convertors.ConvertError(s.logger, err)
@@ -35,12 +35,12 @@ func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (
 		return nil, convertors.ConvertError(s.logger, err)
 	}
 
-	return &event.PublishEventResponse{
+	return &eventPb.PublishEventResponse{
 		ArchiveEventId: archiveEventID.Value().String(),
 	}, nil
 }
 
-func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server event.ArchiveEventService_ReceiveEventServer) error {
+func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server eventPb.ArchiveEventService_ReceiveEventServer) error {
 	ctx := server.Context()
 
 	device, err := auth.AuthenticatedDevice(ctx)
@@ -56,7 +56,7 @@ func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server event.ArchiveEv
 	for archiveEvent := range archiveEvents {
 		archiveEventID := archiveEvent.ID
 		s.logger.Info("event received", zap.String("archive_event_id", archiveEventID))
-		archiveEventResponse := &event.ArchiveEvent{
+		archiveEventResponse := &eventPb.ArchiveEvent{
 			ArchiveEventId: archiveEventID,
 		}
 

@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/client"
+	"github.com/CityBear3/satellite/internal/domain/primitive/device"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,17 +16,17 @@ func TestArchive_CheckCorrectCall(t *testing.T) {
 		client Client
 	}
 
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	clientName, err := primitive.NewClientName("test")
+	clientName, err := client.NewClientName("test")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	deviceName, err := primitive.NewDeviceName("test")
+	deviceName, err := device.NewDeviceName("test")
 	if err != nil {
 		t.Fatal(err)
 	}

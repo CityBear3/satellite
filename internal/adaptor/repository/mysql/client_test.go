@@ -7,6 +7,8 @@ import (
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/client"
+	"github.com/CityBear3/satellite/internal/domain/primitive/device"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
@@ -38,14 +40,14 @@ func TestClientRepository_GetClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	deviceName, err := primitive.NewDeviceName("test")
+	deviceName, err := device.NewDeviceName("test")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	device := entity.NewDevice(primitive.NewID(), deviceName, generatedSecret, clientID)
 
-	clientName, err := primitive.NewClientName("test")
+	clientName, err := client.NewClientName("test")
 	if err != nil {
 		t.Fatal(err)
 	}

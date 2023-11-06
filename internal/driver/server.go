@@ -13,7 +13,7 @@ import (
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
-	"github.com/CityBear3/satellite/internal/usecase/interactor"
+	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/archive/v1"
 	"github.com/CityBear3/satellite/pb/authentication/v1"
 	"github.com/CityBear3/satellite/pb/event/v1"
@@ -85,9 +85,9 @@ func (s *Server) Serve() error {
 	eventHandler := rabbitmq.NewEventHandler(logger, conn)
 
 	// interactor
-	archiveInteractor := interactor.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
-	eventInteractor := interactor.NewEventInteractor(eventRepository, eventHandler, txManager)
-	authenticationInteractor := interactor.NewAuthenticationInteractor(clientRepository, deviceRepository)
+	archiveInteractor := usecase.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
+	eventInteractor := usecase.NewEventInteractor(eventRepository, eventHandler, txManager)
+	authenticationInteractor := usecase.NewAuthenticationInteractor(clientRepository, deviceRepository)
 
 	// rpc service
 	archiveRPCService := rpc.NewArchiveRPCService(logger, archiveInteractor)
@@ -118,9 +118,9 @@ func (s *Server) Serve() error {
 		grpc.KeepaliveParams(serverParameters),
 	)
 
-	archive.RegisterArchiveServiceServer(server, archiveRPCService)
-	event.RegisterArchiveEventServiceServer(server, eventRPCService)
-	authentication.RegisterAuthenticationServiceServer(server, authenticationRPCService)
+	archivePb.RegisterArchiveServiceServer(server, archiveRPCService)
+	eventPb.RegisterArchiveEventServiceServer(server, eventRPCService)
+	authPb.RegisterAuthenticationServiceServer(server, authenticationRPCService)
 
 	if serverCfg.IsDevelop {
 		reflection.Register(server)

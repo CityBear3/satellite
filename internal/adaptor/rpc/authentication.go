@@ -6,7 +6,6 @@ import (
 
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/convertors"
 	"github.com/CityBear3/satellite/internal/usecase"
-	"github.com/CityBear3/satellite/internal/usecase/dto"
 	"github.com/CityBear3/satellite/pb/authentication/v1"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
@@ -16,7 +15,7 @@ type AuthenticationRPCService struct {
 	logger                   *zap.Logger
 	authenticationInteractor usecase.AuthenticationUseCase
 	hmacSecret               string
-	authentication.UnimplementedAuthenticationServiceServer
+	authPb.UnimplementedAuthenticationServiceServer
 }
 
 func NewAuthenticationRPCService(
@@ -31,8 +30,8 @@ func NewAuthenticationRPCService(
 	}
 }
 
-func (s AuthenticationRPCService) AuthenticateClient(ctx context.Context, request *authentication.AuthenticateRequest) (*authentication.AuthenticateResponse, error) {
-	authenticateRequest, err := dto.NewAuthenticateRequest(request.Id, request.Secret)
+func (s AuthenticationRPCService) AuthenticateClient(ctx context.Context, request *authPb.AuthenticateRequest) (*authPb.AuthenticateResponse, error) {
+	authenticateRequest, err := convertors.ConvertToAuthenticationRequest(request)
 	if err != nil {
 		return nil, convertors.ConvertError(s.logger, err)
 	}
@@ -46,13 +45,13 @@ func (s AuthenticationRPCService) AuthenticateClient(ctx context.Context, reques
 		return nil, convertors.ConvertError(s.logger, err)
 	}
 
-	return &authentication.AuthenticateResponse{
+	return &authPb.AuthenticateResponse{
 		Token: token,
 	}, nil
 }
 
-func (s AuthenticationRPCService) AuthenticateDevice(ctx context.Context, request *authentication.AuthenticateRequest) (*authentication.AuthenticateResponse, error) {
-	authenticateRequest, err := dto.NewAuthenticateRequest(request.Id, request.Secret)
+func (s AuthenticationRPCService) AuthenticateDevice(ctx context.Context, request *authPb.AuthenticateRequest) (*authPb.AuthenticateResponse, error) {
+	authenticateRequest, err := convertors.ConvertToAuthenticationRequest(request)
 	if err != nil {
 		return nil, convertors.ConvertError(s.logger, err)
 	}
@@ -66,7 +65,7 @@ func (s AuthenticationRPCService) AuthenticateDevice(ctx context.Context, reques
 		return nil, convertors.ConvertError(s.logger, err)
 	}
 
-	return &authentication.AuthenticateResponse{
+	return &authPb.AuthenticateResponse{
 		Token: token,
 	}, nil
 }

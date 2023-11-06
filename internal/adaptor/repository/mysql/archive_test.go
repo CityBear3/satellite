@@ -7,6 +7,7 @@ import (
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
@@ -57,7 +58,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 
 	archiveID := primitive.NewID()
 
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +169,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 	deviceID := primitive.NewID()
 	archiveID := primitive.NewID()
 	archiveEventID := primitive.NewID()
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,7 +281,7 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 	deviceID := primitive.NewID()
 	archiveID := primitive.NewID()
 	archiveEventID := primitive.NewID()
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
