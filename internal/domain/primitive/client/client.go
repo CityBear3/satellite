@@ -1,4 +1,4 @@
-package primitive
+package client
 
 import "github.com/CityBear3/satellite/internal/pkg/apperrs"
 

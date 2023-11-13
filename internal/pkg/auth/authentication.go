@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
-	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CompareSecret(hashed primitive.Secret, row primitive.Secret) error {
+func CompareSecret(hashed authentication.Secret, row authentication.Secret) error {
 	h, err := hashed.Value()
 	if err != nil {
 		return err

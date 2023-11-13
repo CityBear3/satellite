@@ -1,11 +1,11 @@
 package helper
 
 import (
-	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GenerateSecret() (*primitive.HashedSecret, error) {
+func GenerateSecret() (*authentication.HashedSecret, error) {
 	secret := "test-1234"
 
 	value, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
@@ -13,7 +13,7 @@ func GenerateSecret() (*primitive.HashedSecret, error) {
 		return nil, err
 	}
 
-	newSecret, err := primitive.NewHashedSecret(string(value))
+	newSecret, err := authentication.NewHashedSecret(string(value))
 	if err != nil {
 		return nil, err
 	}

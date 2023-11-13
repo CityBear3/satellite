@@ -1,4 +1,4 @@
-package primitive
+package authentication
 
 import (
 	"sync"
@@ -47,19 +47,19 @@ func (s *HashedSecret) checkReadOnce() error {
 	return nil
 }
 
-type RowSecret struct {
+type RawSecret struct {
 	value    string
 	once     sync.Once
 	consumed bool
 }
 
-func NewRowSecret(value string) *RowSecret {
-	return &RowSecret{
+func NewRawSecret(value string) *RawSecret {
+	return &RawSecret{
 		value: value,
 	}
 }
 
-func (s *RowSecret) Value() (string, error) {
+func (s *RawSecret) Value() (string, error) {
 	if err := s.checkReadOnce(); err != nil {
 		return "", err
 	}
@@ -67,7 +67,7 @@ func (s *RowSecret) Value() (string, error) {
 	return s.value, nil
 }
 
-func (s *RowSecret) checkReadOnce() error {
+func (s *RawSecret) checkReadOnce() error {
 	if s.consumed {
 		return apperrs.UnexpectedError
 	}

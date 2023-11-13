@@ -5,14 +5,17 @@ import (
 	"database/sql"
 	"testing"
 
+	mock_repository "github.com/CityBear3/satellite/internal/adaptor/repository/mock"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestArchiveRepository_Save(t *testing.T) {
@@ -26,12 +29,14 @@ func TestArchiveRepository_Save(t *testing.T) {
 		args    args
 		tables  []helper.TableOperator
 		queries []string
+		mocks   func(mockFileTransfer *mock_repository.MockIFileTransfer)
 	}
 
 	db, err := helper.GetTestDB()
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
@@ -47,7 +52,12 @@ func TestArchiveRepository_Save(t *testing.T) {
 		return
 	}
 
-	sut := NewArchiveRepository(db)
+	mockController := gomock.NewController(t)
+	defer mockController.Finish()
+
+	mockFileTransfer := mock_repository.NewMockIFileTransfer(mockController)
+
+	sut := NewArchiveRepository(db, mockFileTransfer)
 
 	clientID := ulid.Make()
 
@@ -57,7 +67,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 
 	archiveID := primitive.NewID()
 
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,6 +101,9 @@ func TestArchiveRepository_Save(t *testing.T) {
 			queries: []string{
 				"SELECT * FROM `archive` WHERE `id`=?",
 			},
+			mocks: func(mockFileTransfer *mock_repository.MockIFileTransfer) {
+				mockFileTransfer.EXPECT().Save(ctx, archiveID, contentType, archive.Data{}).Return(nil)
+			},
 		},
 	}
 
@@ -104,6 +117,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 
 		savedResult := table.ArchiveTable{}
 		t.Run(tt.name, func(t *testing.T) {
+			tt.mocks(mockFileTransfer)
 			if err = sut.Save(tt.args.ctx, tt.args.tx, tt.args.archive); err != nil {
 				t.Error(err)
 				return
@@ -149,6 +163,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 		want        entity.Archive
 		expectedErr error
 		tables      []helper.TableOperator
+		mocks       func(mockFileTransfer *mock_repository.MockIFileTransfer)
 	}
 
 	db, err := helper.GetTestDB()
@@ -164,11 +179,16 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 
 	ctx := context.Background()
 
+	mockController := gomock.NewController(t)
+	defer mockController.Finish()
+
+	mockFileTransfer := mock_repository.NewMockIFileTransfer(mockController)
+
 	clientID := primitive.NewID()
 	deviceID := primitive.NewID()
 	archiveID := primitive.NewID()
 	archiveEventID := primitive.NewID()
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,6 +225,9 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 				ArchiveEventID: archiveEventID,
 				ContentType:    contentType,
 			},
+			mocks: func(mockFileTransfer *mock_repository.MockIFileTransfer) {
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil)
+			},
 		},
 		{
 			name: "not found error when archive is not exists",
@@ -213,6 +236,9 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 				archiveID,
 			},
 			expectedErr: apperrs.NotFoundArchiveError,
+			mocks: func(mockFileTransfer *mock_repository.MockIFileTransfer) {
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil).Times(0)
+			},
 		},
 	}
 
@@ -222,7 +248,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sut := NewArchiveRepository(tx)
+		sut := NewArchiveRepository(tx, mockFileTransfer)
 
 		t.Run(tt.name, func(t *testing.T) {
 			for _, operator := range tt.tables {
@@ -232,6 +258,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 				}
 			}
 
+			tt.mocks(mockFileTransfer)
 			got, err := sut.GetArchive(tt.args.ctx, tt.args.id)
 			if tt.expectedErr != nil {
 				assert.EqualError(t, err, tt.expectedErr.Error())
@@ -261,6 +288,7 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 		want        entity.Archive
 		expectedErr error
 		tables      []helper.TableOperator
+		mocks       func(mockFileTransfer *mock_repository.MockIFileTransfer)
 	}
 
 	db, err := helper.GetTestDB()
@@ -276,11 +304,16 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 
 	ctx := context.Background()
 
+	mockController := gomock.NewController(t)
+	defer mockController.Finish()
+
+	mockFileTransfer := mock_repository.NewMockIFileTransfer(mockController)
+
 	clientID := primitive.NewID()
 	deviceID := primitive.NewID()
 	archiveID := primitive.NewID()
 	archiveEventID := primitive.NewID()
-	contentType, err := primitive.NewContentType("image/jpeg")
+	contentType, err := archive.NewContentType("image/jpeg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -317,6 +350,9 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 				ArchiveEventID: archiveEventID,
 				ContentType:    contentType,
 			},
+			mocks: func(mockFileTransfer *mock_repository.MockIFileTransfer) {
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil)
+			},
 		},
 		{
 			name: "not found error when archive is not exists",
@@ -325,6 +361,9 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 				primitive.NewID(),
 			},
 			expectedErr: apperrs.NotFoundArchiveError,
+			mocks: func(mockFileTransfer *mock_repository.MockIFileTransfer) {
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil).Times(0)
+			},
 		},
 	}
 
@@ -334,7 +373,8 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sut := NewArchiveRepository(tx)
+		tt.mocks(mockFileTransfer)
+		sut := NewArchiveRepository(tx, mockFileTransfer)
 
 		for _, operator := range tt.tables {
 			if err := operator.Insert(tt.args.ctx, tx); err != nil {

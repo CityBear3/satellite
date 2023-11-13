@@ -10,14 +10,17 @@ import (
 	"time"
 
 	"github.com/CityBear3/satellite/internal/adaptor/event/rabbitmq"
+	file "github.com/CityBear3/satellite/internal/adaptor/repository/minio"
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
-	"github.com/CityBear3/satellite/internal/usecase/interactor"
+	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/archive/v1"
 	"github.com/CityBear3/satellite/pb/authentication/v1"
 	"github.com/CityBear3/satellite/pb/event/v1"
 	grpcLog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -39,6 +42,7 @@ func NewServer(cfg Config) *Server {
 func (s *Server) Serve() error {
 	serverCfg := s.cfg.ServerConfig
 	dbCfg := s.cfg.DBConfig
+	minioCfg := s.cfg.MinioConfig
 
 	// server
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", serverCfg.Host, serverCfg.Port))
@@ -68,9 +72,19 @@ func (s *Server) Serve() error {
 		}
 	}(db)
 
+	minioClient, err := minio.New(
+		fmt.Sprintf("%s:%d", minioCfg.Host, minioCfg.Port),
+		&minio.Options{
+			Creds:  credentials.NewStaticV4(minioCfg.User, minioCfg.Password, ""),
+			Secure: false,
+		},
+	)
+
+	fileTransfer := file.NewFileTransfer(minioClient, minioCfg.BucketName)
+
 	// repository
 	txManager := mysql.NewTxManger(db)
-	archiveRepository := mysql.NewArchiveRepository(db)
+	archiveRepository := mysql.NewArchiveRepository(db, fileTransfer)
 	eventRepository := mysql.NewEventRepository(db)
 	deviceRepository := mysql.NewDeviceRepository(db)
 	clientRepository := mysql.NewClientRepository(db)
@@ -85,9 +99,9 @@ func (s *Server) Serve() error {
 	eventHandler := rabbitmq.NewEventHandler(logger, conn)
 
 	// interactor
-	archiveInteractor := interactor.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
-	eventInteractor := interactor.NewEventInteractor(eventRepository, eventHandler, txManager)
-	authenticationInteractor := interactor.NewAuthenticationInteractor(clientRepository, deviceRepository)
+	archiveInteractor := usecase.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
+	eventInteractor := usecase.NewEventInteractor(eventRepository, eventHandler, txManager)
+	authenticationInteractor := usecase.NewAuthenticationInteractor(clientRepository, deviceRepository)
 
 	// rpc service
 	archiveRPCService := rpc.NewArchiveRPCService(logger, archiveInteractor)
@@ -118,9 +132,9 @@ func (s *Server) Serve() error {
 		grpc.KeepaliveParams(serverParameters),
 	)
 
-	archive.RegisterArchiveServiceServer(server, archiveRPCService)
-	event.RegisterArchiveEventServiceServer(server, eventRPCService)
-	authentication.RegisterAuthenticationServiceServer(server, authenticationRPCService)
+	archivePb.RegisterArchiveServiceServer(server, archiveRPCService)
+	eventPb.RegisterArchiveEventServiceServer(server, eventRPCService)
+	authPb.RegisterAuthenticationServiceServer(server, authenticationRPCService)
 
 	if serverCfg.IsDevelop {
 		reflection.Register(server)

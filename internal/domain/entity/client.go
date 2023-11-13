@@ -1,15 +1,19 @@
 package entity
 
-import "github.com/CityBear3/satellite/internal/domain/primitive"
+import (
+	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
+	"github.com/CityBear3/satellite/internal/domain/primitive/client"
+)
 
 type Client struct {
 	ID      primitive.ID
-	Name    primitive.ClientName
-	Secret  primitive.Secret
+	Name    client.ClientName
+	Secret  authentication.Secret
 	Devices []Device
 }
 
-func NewClient(id primitive.ID, name primitive.ClientName, secret primitive.Secret, devices []Device) Client {
+func NewClient(id primitive.ID, name client.ClientName, secret authentication.Secret, devices []Device) Client {
 	return Client{
 		ID:      id,
 		Name:    name,

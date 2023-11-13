@@ -1,4 +1,4 @@
-package interactor
+package usecase
 
 import "testing"
 

@@ -4,22 +4,31 @@ import (
 	"slices"
 
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 )
 
 type Archive struct {
 	ID             primitive.ID
 	ArchiveEventID primitive.ID
-	ContentType    primitive.ContentType
+	ContentType    archive.ContentType
 	DeviceID       primitive.ID
+	Data           archive.Data
 }
 
-func NewArchive(id primitive.ID, archiveEventID primitive.ID, contentType primitive.ContentType, deviceId primitive.ID) Archive {
+func NewArchive(
+	id primitive.ID,
+	archiveEventID primitive.ID,
+	contentType archive.ContentType,
+	deviceId primitive.ID,
+	data archive.Data,
+) Archive {
 	return Archive{
 		ID:             id,
 		ContentType:    contentType,
 		ArchiveEventID: archiveEventID,
 		DeviceID:       deviceId,
+		Data:           data,
 	}
 }
 

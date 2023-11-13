@@ -22,3 +22,7 @@ func ParseID(value string) (ID, error) {
 func (i ID) Value() ulid.ULID {
 	return i.value
 }
+
+func (i ID) String() string {
+	return i.value.String()
+}

@@ -5,21 +5,24 @@ import (
 	"database/sql"
 	"errors"
 
-	schema "github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
+	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/domain/repository"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type ArchiveRepository struct {
-	db boil.ContextExecutor
+	db           boil.ContextExecutor
+	fileTransfer repository.IFileTransfer
 }
 
-func NewArchiveRepository(db boil.ContextExecutor) *ArchiveRepository {
+func NewArchiveRepository(db boil.ContextExecutor, fileTransfer repository.IFileTransfer) *ArchiveRepository {
 	return &ArchiveRepository{
-		db: db,
+		db:           db,
+		fileTransfer: fileTransfer,
 	}
 }
 
@@ -44,6 +47,10 @@ func (i *ArchiveRepository) Save(
 		return err
 	}
 
+	if err = i.fileTransfer.Save(ctx, archive.ID, archive.ContentType, archive.Data); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -51,7 +58,7 @@ func (i *ArchiveRepository) GetArchive(
 	ctx context.Context,
 	archiveID primitive.ID,
 ) (entity.Archive, error) {
-	archive, err := schema.Archives(schema.ArchiveWhere.ID.EQ(archiveID.Value().String())).One(ctx, i.db)
+	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ID.EQ(archiveID.Value().String())).One(ctx, i.db)
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}
@@ -59,34 +66,39 @@ func (i *ArchiveRepository) GetArchive(
 		return entity.Archive{}, err
 	}
 
-	id, err := primitive.ParseID(archive.ID)
+	id, err := primitive.ParseID(archiveSchema.ID)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	archiveEventID, err := primitive.ParseID(archive.ArchiveEventID)
+	archiveEventID, err := primitive.ParseID(archiveSchema.ArchiveEventID)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	deviceID, err := primitive.ParseID(archive.DeviceID)
+	deviceID, err := primitive.ParseID(archiveSchema.DeviceID)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	contentType, err := primitive.NewContentType(archive.ContentType)
+	contentType, err := archive.NewContentType(archiveSchema.ContentType)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	return entity.NewArchive(id, archiveEventID, contentType, deviceID), nil
+	data, err := i.fileTransfer.GetFile(ctx, archiveID, contentType)
+	if err != nil {
+		return entity.Archive{}, err
+	}
+
+	return entity.NewArchive(id, archiveEventID, contentType, deviceID, data), nil
 }
 
 func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 	ctx context.Context,
 	archiveEventID primitive.ID,
 ) (entity.Archive, error) {
-	archive, err := schema.Archives(schema.ArchiveWhere.ArchiveEventID.EQ(archiveEventID.Value().String())).One(ctx, i.db)
+	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ArchiveEventID.EQ(archiveEventID.Value().String())).One(ctx, i.db)
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}
@@ -95,25 +107,30 @@ func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 		return entity.Archive{}, err
 	}
 
-	id, err := primitive.ParseID(archive.ID)
+	id, err := primitive.ParseID(archiveSchema.ID)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	archiveEventID, err = primitive.ParseID(archive.ArchiveEventID)
+	archiveEventID, err = primitive.ParseID(archiveSchema.ArchiveEventID)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	deviceID, err := primitive.ParseID(archive.DeviceID)
+	deviceID, err := primitive.ParseID(archiveSchema.DeviceID)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	contentType, err := primitive.NewContentType(archive.ContentType)
+	contentType, err := archive.NewContentType(archiveSchema.ContentType)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	return entity.NewArchive(id, archiveEventID, contentType, deviceID), nil
+	data, err := i.fileTransfer.GetFile(ctx, id, contentType)
+	if err != nil {
+		return entity.Archive{}, err
+	}
+
+	return entity.NewArchive(id, archiveEventID, contentType, deviceID, data), nil
 }
