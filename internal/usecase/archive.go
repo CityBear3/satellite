@@ -13,17 +13,17 @@ import (
 
 type (
 	ArchiveUseCase interface {
-		CreateArchive(ctx context.Context, request CreateArchiveRequest, device entity.Device) error
-		GetArchive(ctx context.Context, request GetArchiveRequest, client entity.Client) (GetArchiveResult, error)
+		CreateArchive(ctx context.Context, request CreateArchiveInput, device entity.Device) error
+		GetArchive(ctx context.Context, request GetArchiveInput, client entity.Client) (GetArchiveResult, error)
 	}
 
-	CreateArchiveRequest struct {
+	CreateArchiveInput struct {
 		ArchiveEventID primitive.ID
 		ContentType    archive.ContentType
 		Data           archive.Data
 	}
 
-	GetArchiveRequest struct {
+	GetArchiveInput struct {
 		ArchiveEventID primitive.ID
 	}
 
@@ -57,7 +57,7 @@ func NewArchiveInteractor(
 // CreateArchive do operation for upload archive
 func (i *ArchiveInteractor) CreateArchive(
 	ctx context.Context,
-	request CreateArchiveRequest,
+	request CreateArchiveInput,
 	device entity.Device,
 ) error {
 	if err := i.txManager.DoInTx(ctx, func(rtx repository.ITx) error {
@@ -87,7 +87,7 @@ func (i *ArchiveInteractor) CreateArchive(
 // GetArchive do operation for get archive
 func (i *ArchiveInteractor) GetArchive(
 	ctx context.Context,
-	request GetArchiveRequest,
+	request GetArchiveInput,
 	client entity.Client,
 ) (GetArchiveResult, error) {
 	archiveEntity, err := i.archiveRepository.GetArchiveByArchiveEventID(ctx, request.ArchiveEventID)

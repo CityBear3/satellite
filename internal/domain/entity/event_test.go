@@ -68,7 +68,6 @@ func TestArchiveEvent_CheckCorrectCall(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			err := sut.CheckCorrectCall(tt.args.deviceID, tt.args.clientID, tt.args.now)
 			if tt.expectedErr != nil {
 				tt.assertFunc(t, err, tt.expectedErr.Error())

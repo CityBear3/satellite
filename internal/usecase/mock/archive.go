@@ -41,7 +41,7 @@ func (m *MockArchiveUseCase) EXPECT() *MockArchiveUseCaseMockRecorder {
 }
 
 // CreateArchive mocks base method.
-func (m *MockArchiveUseCase) CreateArchive(ctx context.Context, request usecase.CreateArchiveRequest, device entity.Device) error {
+func (m *MockArchiveUseCase) CreateArchive(ctx context.Context, request usecase.CreateArchiveInput, device entity.Device) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateArchive", ctx, request, device)
 	ret0, _ := ret[0].(error)
@@ -55,7 +55,7 @@ func (mr *MockArchiveUseCaseMockRecorder) CreateArchive(ctx, request, device any
 }
 
 // GetArchive mocks base method.
-func (m *MockArchiveUseCase) GetArchive(ctx context.Context, request usecase.GetArchiveRequest, client entity.Client) (usecase.GetArchiveResult, error) {
+func (m *MockArchiveUseCase) GetArchive(ctx context.Context, request usecase.GetArchiveInput, client entity.Client) (usecase.GetArchiveResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetArchive", ctx, request, client)
 	ret0, _ := ret[0].(usecase.GetArchiveResult)

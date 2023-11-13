@@ -10,7 +10,7 @@ import (
 	"github.com/CityBear3/satellite/pb/archive/v1"
 )
 
-func ConvertToCreateArchiveRequest(requests []*archivePb.CreateArchiveRequest) (usecase.CreateArchiveRequest, error) {
+func CreateArchiveRequestToInput(requests []*archivePb.CreateArchiveRequest) (usecase.CreateArchiveInput, error) {
 	var meta *archivePb.CreateArchiveMetaInfo
 	var chunks []byte
 
@@ -23,43 +23,43 @@ func ConvertToCreateArchiveRequest(requests []*archivePb.CreateArchiveRequest) (
 	}
 
 	if meta == nil {
-		return usecase.CreateArchiveRequest{}, apperrs.UnexpectedError
+		return usecase.CreateArchiveInput{}, apperrs.UnexpectedError
 	}
 
 	id, err := primitive.ParseID(meta.ArchiveEventId)
 	if err != nil {
-		return usecase.CreateArchiveRequest{}, err
+		return usecase.CreateArchiveInput{}, err
 	}
 
 	contentType, err := archive.NewContentType(http.DetectContentType(chunks))
 	if err != nil {
-		return usecase.CreateArchiveRequest{}, err
+		return usecase.CreateArchiveInput{}, err
 	}
 
 	data, err := archive.NewData(chunks)
 	if err != nil {
-		return usecase.CreateArchiveRequest{}, err
+		return usecase.CreateArchiveInput{}, err
 	}
 
-	return usecase.CreateArchiveRequest{
+	return usecase.CreateArchiveInput{
 		ArchiveEventID: id,
 		ContentType:    contentType,
 		Data:           data,
 	}, nil
 }
 
-func ConvertToGetArchiveRequest(request *archivePb.GetArchiveRequest) (usecase.GetArchiveRequest, error) {
+func GetArchiveRequestToInput(request *archivePb.GetArchiveRequest) (usecase.GetArchiveInput, error) {
 	archiveEventID, err := primitive.ParseID(request.GetArchiveEventId())
 	if err != nil {
-		return usecase.GetArchiveRequest{}, err
+		return usecase.GetArchiveInput{}, err
 	}
 
-	return usecase.GetArchiveRequest{
+	return usecase.GetArchiveInput{
 		ArchiveEventID: archiveEventID,
 	}, nil
 }
 
-func ConvertToGetArchiveResponse(result usecase.GetArchiveResult) []*archivePb.GetArchiveResponse {
+func GetArchiveResultToResponse(result usecase.GetArchiveResult) []*archivePb.GetArchiveResponse {
 	size := result.Data.Size.Value()
 	responses := []*archivePb.GetArchiveResponse{
 		{

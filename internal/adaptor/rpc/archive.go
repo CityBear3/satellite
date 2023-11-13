@@ -46,7 +46,7 @@ func (s ArchiveRPCService) CreateArchive(server archivePb.ArchiveService_CreateA
 		requests = append(requests, request)
 	}
 
-	request, err := convertors.ConvertToCreateArchiveRequest(requests)
+	request, err := convertors.CreateArchiveRequestToInput(requests)
 	if err != nil {
 		return convertors.ConvertError(s.logger, err)
 	}
@@ -70,7 +70,7 @@ func (s ArchiveRPCService) GetArchive(request *archivePb.GetArchiveRequest, serv
 		return convertors.ConvertError(s.logger, err)
 	}
 
-	getArchiveRequest, err := convertors.ConvertToGetArchiveRequest(request)
+	getArchiveRequest, err := convertors.GetArchiveRequestToInput(request)
 	if err != nil {
 		return convertors.ConvertError(s.logger, err)
 	}
@@ -80,7 +80,7 @@ func (s ArchiveRPCService) GetArchive(request *archivePb.GetArchiveRequest, serv
 		return convertors.ConvertError(s.logger, err)
 	}
 
-	for _, response := range convertors.ConvertToGetArchiveResponse(result) {
+	for _, response := range convertors.GetArchiveResultToResponse(result) {
 		if err = server.Send(response); err != nil {
 			return convertors.ConvertError(s.logger, err)
 		}
