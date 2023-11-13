@@ -51,7 +51,7 @@ func (f FileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, conte
 
 	var buf []byte
 	for {
-		tmp := make([]byte, 1024)
+		tmp := make([]byte, 1e6)
 		_, err := object.Read(tmp)
 		if err == io.EOF {
 			break
