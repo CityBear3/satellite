@@ -20,7 +20,7 @@ type (
 	CreateArchiveRequest struct {
 		ArchiveEventID primitive.ID
 		ContentType    archive.ContentType
-		Data           []byte
+		Data           archive.Data
 	}
 
 	GetArchiveRequest struct {
@@ -32,8 +32,7 @@ type (
 		ArchiveEventID primitive.ID
 		ContentType    archive.ContentType
 		DeviceID       primitive.ID
-		Data           []byte
-		Size           int
+		Data           archive.Data
 	}
 )
 
@@ -73,7 +72,7 @@ func (i *ArchiveInteractor) CreateArchive(
 			return err
 		}
 
-		archiveEntity := entity.NewArchive(archiveID, request.ArchiveEventID, request.ContentType, device.ID)
+		archiveEntity := entity.NewArchive(archiveID, request.ArchiveEventID, request.ContentType, device.ID, request.Data)
 		if err := i.archiveRepository.Save(ctx, rtx, archiveEntity); err != nil {
 			return err
 		}
@@ -105,5 +104,6 @@ func (i *ArchiveInteractor) GetArchive(
 		ArchiveEventID: archiveEntity.ArchiveEventID,
 		ContentType:    archiveEntity.ContentType,
 		DeviceID:       archiveEntity.DeviceID,
+		Data:           archiveEntity.Data,
 	}, nil
 }

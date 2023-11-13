@@ -13,14 +13,22 @@ type Archive struct {
 	ArchiveEventID primitive.ID
 	ContentType    archive.ContentType
 	DeviceID       primitive.ID
+	Data           archive.Data
 }
 
-func NewArchive(id primitive.ID, archiveEventID primitive.ID, contentType archive.ContentType, deviceId primitive.ID) Archive {
+func NewArchive(
+	id primitive.ID,
+	archiveEventID primitive.ID,
+	contentType archive.ContentType,
+	deviceId primitive.ID,
+	data archive.Data,
+) Archive {
 	return Archive{
 		ID:             id,
 		ContentType:    contentType,
 		ArchiveEventID: archiveEventID,
 		DeviceID:       deviceId,
+		Data:           data,
 	}
 }
 

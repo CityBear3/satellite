@@ -31,8 +31,13 @@ func TestArchive_CheckCorrectCall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	archive := NewArchive(primitive.NewID(), primitive.NewID(), contentType, primitive.NewID())
-	device := NewDevice(archive.DeviceID, deviceName, nil, primitive.NewID())
+	data, err := archive.NewData([]byte("test"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	archiveEntity := NewArchive(primitive.NewID(), primitive.NewID(), contentType, primitive.NewID(), data)
+	deviceEntity := NewDevice(archiveEntity.DeviceID, deviceName, nil, primitive.NewID())
 
 	tests := []struct {
 		name        string
@@ -42,14 +47,14 @@ func TestArchive_CheckCorrectCall(t *testing.T) {
 		{
 			name: "normal case",
 			args: args{
-				client: NewClient(device.ClientID, clientName, nil, []Device{device}),
+				client: NewClient(deviceEntity.ClientID, clientName, nil, []Device{deviceEntity}),
 			},
 			expectedErr: nil,
 		},
 		{
 			name: "invalid case",
 			args: args{
-				client: NewClient(device.ClientID, clientName, nil, []Device{}),
+				client: NewClient(deviceEntity.ClientID, clientName, nil, []Device{}),
 			},
 			expectedErr: apperrs.InvalidClientCallingArchiveError,
 		},
@@ -57,7 +62,7 @@ func TestArchive_CheckCorrectCall(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := archive.CheckCorrectCall(tt.args.client)
+			err := archiveEntity.CheckCorrectCall(tt.args.client)
 			if tt.expectedErr != nil {
 				assert.EqualError(t, err, tt.expectedErr.Error())
 				return

@@ -2,10 +2,8 @@ package rpc
 
 import (
 	"io"
-	"net/http"
 
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/convertors"
-	"github.com/CityBear3/satellite/internal/adaptor/rpc/validations"
 	"github.com/CityBear3/satellite/internal/pkg/auth"
 	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/archive/v1"
@@ -34,8 +32,7 @@ func (s ArchiveRPCService) CreateArchive(server archivePb.ArchiveService_CreateA
 		return convertors.ConvertError(s.logger, err)
 	}
 
-	var meta *archivePb.CreateArchiveMetaInfo
-	var data []byte
+	var requests []*archivePb.CreateArchiveRequest
 	for {
 		request, err := server.Recv()
 		if err == io.EOF {
@@ -46,21 +43,10 @@ func (s ArchiveRPCService) CreateArchive(server archivePb.ArchiveService_CreateA
 			return convertors.ConvertError(s.logger, err)
 		}
 
-		if m := request.GetMeta(); m != nil {
-			meta = m
-		}
-		if c := request.GetChunk(); c != nil {
-			data = append(data, c...)
-		}
+		requests = append(requests, request)
 	}
 
-	contentType := http.DetectContentType(data)
-
-	if err := validations.ValidateCreateArchive(meta, data); err != nil {
-		return convertors.ConvertError(s.logger, err)
-	}
-
-	request, err := convertors.ConvertToCreateArchiveRequest(meta.ArchiveEventId, contentType, data)
+	request, err := convertors.ConvertToCreateArchiveRequest(requests)
 	if err != nil {
 		return convertors.ConvertError(s.logger, err)
 	}
@@ -94,14 +80,10 @@ func (s ArchiveRPCService) GetArchive(request *archivePb.GetArchiveRequest, serv
 		return convertors.ConvertError(s.logger, err)
 	}
 
-	if err = server.Send(&archivePb.GetArchiveResponse{Value: &archivePb.GetArchiveResponse_Meta{
-		Meta: &archivePb.GetArchiveMetaInfo{
-			ArchiveId:   result.ID.String(),
-			ContentType: result.ContentType.Value(),
-			Size:        int64(result.Size),
-		},
-	}}); err != nil {
-		return convertors.ConvertError(s.logger, err)
+	for _, response := range convertors.ConvertToGetArchiveResponse(result) {
+		if err = server.Send(response); err != nil {
+			return convertors.ConvertError(s.logger, err)
+		}
 	}
 
 	return nil

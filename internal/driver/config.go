@@ -9,6 +9,7 @@ type Config struct {
 	ServerConfig   ServerConfig
 	AuthConfig     AuthConfig
 	RabbitMQConfig RabbitMQConfig
+	MinioConfig    MinioConfig
 }
 
 type DBConfig struct {
@@ -21,8 +22,11 @@ type DBConfig struct {
 }
 
 type MinioConfig struct {
-	Host string `env:"MINIO_HOST" envDefault:"localhost"`
-	Port int    `env:"MINIO_PORT" envDefault:"9000"`
+	Host       string `env:"MINIO_HOST" envDefault:"localhost"`
+	Port       int    `env:"MINIO_PORT" envDefault:"9000"`
+	BucketName string `env:"MINIO_BUCKET_NAME" envDefault:"archives"`
+	User       string `env:"MINIO_USER" envDefault:"satellite"`
+	Password   string `env:"MINIO_PASSWORD" envDefault:"satellite"`
 }
 
 type ServerConfig struct {

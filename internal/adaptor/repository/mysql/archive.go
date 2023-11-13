@@ -15,12 +15,14 @@ import (
 )
 
 type ArchiveRepository struct {
-	db boil.ContextExecutor
+	db           boil.ContextExecutor
+	fileTransfer repository.IFileTransfer
 }
 
-func NewArchiveRepository(db boil.ContextExecutor) *ArchiveRepository {
+func NewArchiveRepository(db boil.ContextExecutor, fileTransfer repository.IFileTransfer) *ArchiveRepository {
 	return &ArchiveRepository{
-		db: db,
+		db:           db,
+		fileTransfer: fileTransfer,
 	}
 }
 
@@ -42,6 +44,10 @@ func (i *ArchiveRepository) Save(
 	}
 
 	if err := archiveSchema.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+		return err
+	}
+
+	if err = i.fileTransfer.Save(ctx, archive.ID, archive.ContentType, archive.Data); err != nil {
 		return err
 	}
 
@@ -80,7 +86,12 @@ func (i *ArchiveRepository) GetArchive(
 		return entity.Archive{}, err
 	}
 
-	return entity.NewArchive(id, archiveEventID, contentType, deviceID), nil
+	data, err := i.fileTransfer.GetFile(ctx, archiveID, contentType)
+	if err != nil {
+		return entity.Archive{}, err
+	}
+
+	return entity.NewArchive(id, archiveEventID, contentType, deviceID, data), nil
 }
 
 func (i *ArchiveRepository) GetArchiveByArchiveEventID(
@@ -116,5 +127,10 @@ func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 		return entity.Archive{}, err
 	}
 
-	return entity.NewArchive(id, archiveEventID, contentType, deviceID), nil
+	data, err := i.fileTransfer.GetFile(ctx, id, contentType)
+	if err != nil {
+		return entity.Archive{}, err
+	}
+
+	return entity.NewArchive(id, archiveEventID, contentType, deviceID, data), nil
 }

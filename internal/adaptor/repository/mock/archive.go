@@ -14,6 +14,7 @@ import (
 
 	entity "github.com/CityBear3/satellite/internal/domain/entity"
 	primitive "github.com/CityBear3/satellite/internal/domain/primitive"
+	archive "github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	repository "github.com/CityBear3/satellite/internal/domain/repository"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -83,4 +84,56 @@ func (m *MockIArchiveRepository) Save(ctx context.Context, tx repository.ITx, ar
 func (mr *MockIArchiveRepositoryMockRecorder) Save(ctx, tx, archive any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockIArchiveRepository)(nil).Save), ctx, tx, archive)
+}
+
+// MockIFileTransfer is a mock of IFileTransfer interface.
+type MockIFileTransfer struct {
+	ctrl     *gomock.Controller
+	recorder *MockIFileTransferMockRecorder
+}
+
+// MockIFileTransferMockRecorder is the mock recorder for MockIFileTransfer.
+type MockIFileTransferMockRecorder struct {
+	mock *MockIFileTransfer
+}
+
+// NewMockIFileTransfer creates a new mock instance.
+func NewMockIFileTransfer(ctrl *gomock.Controller) *MockIFileTransfer {
+	mock := &MockIFileTransfer{ctrl: ctrl}
+	mock.recorder = &MockIFileTransferMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIFileTransfer) EXPECT() *MockIFileTransferMockRecorder {
+	return m.recorder
+}
+
+// GetFile mocks base method.
+func (m *MockIFileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (archive.Data, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFile", ctx, archiveID, contentType)
+	ret0, _ := ret[0].(archive.Data)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFile indicates an expected call of GetFile.
+func (mr *MockIFileTransferMockRecorder) GetFile(ctx, archiveID, contentType any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockIFileTransfer)(nil).GetFile), ctx, archiveID, contentType)
+}
+
+// Save mocks base method.
+func (m *MockIFileTransfer) Save(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType, data archive.Data) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, archiveID, contentType, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockIFileTransferMockRecorder) Save(ctx, archiveID, contentType, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockIFileTransfer)(nil).Save), ctx, archiveID, contentType, data)
 }
