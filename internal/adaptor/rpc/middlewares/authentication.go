@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/convertors"
-	"github.com/CityBear3/satellite/internal/domain/repository"
+	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/golang-jwt/jwt"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"

@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/CityBear3/satellite/internal/domain/repository"
+	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
 )
 
 type Operation func(rtx repository.ITx) error

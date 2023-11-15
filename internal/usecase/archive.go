@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
+	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
-	"github.com/CityBear3/satellite/internal/domain/repository"
 )
 
 type (

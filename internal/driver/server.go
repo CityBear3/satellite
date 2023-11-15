@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/CityBear3/satellite/internal/adaptor/event/rabbitmq"
-	file "github.com/CityBear3/satellite/internal/adaptor/repository/minio"
-	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
+	mysql2 "github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql"
+	file "github.com/CityBear3/satellite/internal/adaptor/gateway/transfer/minio"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
 	"github.com/CityBear3/satellite/internal/usecase"
@@ -83,11 +83,11 @@ func (s *Server) Serve() error {
 	fileTransfer := file.NewFileTransfer(minioClient, minioCfg.BucketName)
 
 	// repository
-	txManager := mysql.NewTxManger(db)
-	archiveRepository := mysql.NewArchiveRepository(db, fileTransfer)
-	eventRepository := mysql.NewEventRepository(db)
-	deviceRepository := mysql.NewDeviceRepository(db)
-	clientRepository := mysql.NewClientRepository(db)
+	txManager := mysql2.NewTxManger(db)
+	archiveRepository := mysql2.NewArchiveRepository(db, fileTransfer)
+	eventRepository := mysql2.NewEventRepository(db)
+	deviceRepository := mysql2.NewDeviceRepository(db)
+	clientRepository := mysql2.NewClientRepository(db)
 
 	// event handler
 	rqConf := s.cfg.RabbitMQConfig

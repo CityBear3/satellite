@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/CityBear3/satellite/internal/domain/repository"
+	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/stretchr/testify/assert"
