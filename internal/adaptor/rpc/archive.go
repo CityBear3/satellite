@@ -24,12 +24,16 @@ func NewArchiveRPCService(logger *zap.Logger, archiveInteractor usecase.ArchiveU
 	}
 }
 
+func (s ArchiveRPCService) handleError(err error) error {
+	return convertors.ConvertError(s.logger, err)
+}
+
 func (s ArchiveRPCService) CreateArchive(server archivePb.ArchiveService_CreateArchiveServer) error {
 	ctx := server.Context()
 
 	device, err := auth.AuthenticatedDevice(ctx)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	var requests []*archivePb.CreateArchiveRequest
@@ -40,7 +44,7 @@ func (s ArchiveRPCService) CreateArchive(server archivePb.ArchiveService_CreateA
 		}
 
 		if err != nil {
-			return convertors.ConvertError(s.logger, err)
+			return s.handleError(err)
 		}
 
 		requests = append(requests, request)
@@ -48,15 +52,15 @@ func (s ArchiveRPCService) CreateArchive(server archivePb.ArchiveService_CreateA
 
 	request, err := convertors.CreateArchiveRequestToInput(requests)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	if err := s.uploadArchiveInteractor.CreateArchive(ctx, request, device); err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	if err := server.SendAndClose(&emptypb.Empty{}); err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	return nil
@@ -67,22 +71,22 @@ func (s ArchiveRPCService) GetArchive(request *archivePb.GetArchiveRequest, serv
 
 	client, err := auth.AuthenticatedClient(ctx)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	getArchiveRequest, err := convertors.GetArchiveRequestToInput(request)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	result, err := s.uploadArchiveInteractor.GetArchive(ctx, getArchiveRequest, client)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	for _, response := range convertors.GetArchiveResultToResponse(result) {
 		if err = server.Send(response); err != nil {
-			return convertors.ConvertError(s.logger, err)
+			return s.handleError(err)
 		}
 	}
 

@@ -24,15 +24,19 @@ func NewEventRPCService(logger *zap.Logger, eventInteractor usecase.EventUseCase
 	}
 }
 
+func (s EventRPCService) handleError(err error) error {
+	return convertors.ConvertError(s.logger, err)
+}
+
 func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (*eventPb.PublishEventResponse, error) {
 	client, err := auth.AuthenticatedClient(ctx)
 	if err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	archiveEventID, err := s.eventInteractor.PublishArchiveEvent(ctx, client)
 	if err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	return &eventPb.PublishEventResponse{
@@ -45,12 +49,12 @@ func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server eventPb.Archive
 
 	device, err := auth.AuthenticatedDevice(ctx)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	archiveEvents, err := s.eventInteractor.ReceiveArchiveEvent(ctx, device)
 	if err != nil {
-		return convertors.ConvertError(s.logger, err)
+		return s.handleError(err)
 	}
 
 	for archiveEvent := range archiveEvents {
@@ -61,7 +65,7 @@ func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server eventPb.Archive
 		}
 
 		if err := server.Send(archiveEventResponse); err != nil {
-			return convertors.ConvertError(s.logger, err)
+			return s.handleError(err)
 		}
 	}
 
