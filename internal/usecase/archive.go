@@ -60,10 +60,10 @@ func (i *ArchiveInteractor) CreateArchive(
 	request CreateArchiveInput,
 	device entity.Device,
 ) error {
-	if err := i.txManager.DoInTx(ctx, func(rtx repository.ITx) error {
+	if err := i.txManager.DoInTx(ctx, func(ctx2 context.Context) error {
 		archiveID := primitive.NewID()
 
-		event, err := i.eventRepository.GetArchiveEvent(ctx, request.ArchiveEventID)
+		event, err := i.eventRepository.GetArchiveEvent(ctx2, request.ArchiveEventID)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (i *ArchiveInteractor) CreateArchive(
 		}
 
 		archiveEntity := entity.NewArchive(archiveID, request.ArchiveEventID, request.ContentType, device.ID, request.Data)
-		if err := i.archiveRepository.Save(ctx, rtx, archiveEntity); err != nil {
+		if err := i.archiveRepository.Save(ctx2, archiveEntity); err != nil {
 			return err
 		}
 

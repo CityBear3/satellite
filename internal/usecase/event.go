@@ -45,12 +45,12 @@ func NewEventInteractor(
 
 func (i EventInteractor) PublishArchiveEvent(ctx context.Context, client entity.Client) (primitive.ID, error) {
 	archiveEvent := entity.NewArchiveEvent(primitive.NewID(), client.Devices[0].ID, client.ID)
-	if err := i.txManager.DoInTx(ctx, func(rtx repository.ITx) error {
-		if err := i.eventRepository.SaveArchiveEvent(ctx, rtx, archiveEvent); err != nil {
+	if err := i.txManager.DoInTx(ctx, func(ctx2 context.Context) error {
+		if err := i.eventRepository.SaveArchiveEvent(ctx2, archiveEvent); err != nil {
 			return err
 		}
 
-		if err := i.eventHandler.PublishArchiveEvent(ctx, archiveEvent); err != nil {
+		if err := i.eventHandler.PublishArchiveEvent(ctx2, archiveEvent); err != nil {
 			return err
 		}
 

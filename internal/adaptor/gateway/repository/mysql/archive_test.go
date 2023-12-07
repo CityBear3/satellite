@@ -57,7 +57,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 
 	mockFileTransfer := mock_transfer.NewMockIFileTransfer(mockController)
 
-	sut := NewArchiveRepository(db, mockFileTransfer)
+	sut := NewArchiveRepository(tx, mockFileTransfer)
 
 	clientID := ulid.Make()
 
@@ -118,7 +118,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 		savedResult := table.ArchiveTable{}
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mocks(mockFileTransfer)
-			if err = sut.Save(tt.args.ctx, tt.args.tx, tt.args.archive); err != nil {
+			if err = sut.Save(tt.args.ctx, tt.args.archive); err != nil {
 				t.Error(err)
 				return
 			}

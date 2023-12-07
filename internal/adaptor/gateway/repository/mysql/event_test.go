@@ -86,7 +86,7 @@ func TestEventRepository_SaveArchiveEvent(t *testing.T) {
 
 		saveResult := table.ArchiveEventTable{}
 		t.Run(tt.name, func(t *testing.T) {
-			if err := sut.SaveArchiveEvent(tt.args.ctx, tx, tt.args.archiveEvent); err != nil {
+			if err := sut.SaveArchiveEvent(tt.args.ctx, tt.args.archiveEvent); err != nil {
 				t.Error(err)
 				return
 			}

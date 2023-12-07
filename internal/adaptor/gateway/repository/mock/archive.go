@@ -13,7 +13,6 @@ import (
 	reflect "reflect"
 
 	entity "github.com/CityBear3/satellite/internal/domain/entity"
-	repository "github.com/CityBear3/satellite/internal/domain/gateway/repository"
 	primitive "github.com/CityBear3/satellite/internal/domain/primitive"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -72,15 +71,15 @@ func (mr *MockIArchiveRepositoryMockRecorder) GetArchiveByArchiveEventID(ctx, ar
 }
 
 // Save mocks base method.
-func (m *MockIArchiveRepository) Save(ctx context.Context, tx repository.ITx, archive entity.Archive) error {
+func (m *MockIArchiveRepository) Save(ctx context.Context, archive entity.Archive) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, tx, archive)
+	ret := m.ctrl.Call(m, "Save", ctx, archive)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockIArchiveRepositoryMockRecorder) Save(ctx, tx, archive any) *gomock.Call {
+func (mr *MockIArchiveRepositoryMockRecorder) Save(ctx, archive any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockIArchiveRepository)(nil).Save), ctx, tx, archive)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockIArchiveRepository)(nil).Save), ctx, archive)
 }

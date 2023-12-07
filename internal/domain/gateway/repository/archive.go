@@ -9,7 +9,7 @@ import (
 )
 
 type IArchiveRepository interface {
-	Save(ctx context.Context, tx ITx, archive entity.Archive) error
+	Save(ctx context.Context, archive entity.Archive) error
 	GetArchive(ctx context.Context, archiveId primitive.ID) (entity.Archive, error)
 	GetArchiveByArchiveEventID(ctx context.Context, archiveEventID primitive.ID) (entity.Archive, error)
 }

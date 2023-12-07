@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
-	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/internal/usecase"
 )
 
@@ -25,7 +23,9 @@ func (t *TxManager) DoInTx(ctx context.Context, operation usecase.Operation) err
 		return err
 	}
 
-	if err := operation(tx); err != nil {
+	ctx = context.WithValue(ctx, "tx", tx)
+
+	if err := operation(ctx); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return err
 		}
@@ -36,13 +36,4 @@ func (t *TxManager) DoInTx(ctx context.Context, operation usecase.Operation) err
 		return err
 	}
 	return nil
-}
-
-func ConvertToSqlTx(rtx repository.ITx) (*sql.Tx, error) {
-	tx, ok := rtx.(*sql.Tx)
-	if !ok {
-		return nil, apperrs.UnexpectedError
-	}
-
-	return tx, nil
 }
