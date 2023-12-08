@@ -31,7 +31,7 @@ func (i *ArchiveRepository) Save(
 	archive entity.Archive,
 ) error {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}
@@ -59,7 +59,7 @@ func (i *ArchiveRepository) GetArchive(
 	archiveID primitive.ID,
 ) (entity.Archive, error) {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}
@@ -105,7 +105,7 @@ func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 	archiveEventID primitive.ID,
 ) (entity.Archive, error) {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}

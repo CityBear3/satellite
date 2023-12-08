@@ -60,7 +60,7 @@ func (i *ArchiveInteractor) CreateArchive(
 	request CreateArchiveInput,
 	device entity.Device,
 ) error {
-	if err := i.txManager.DoInTx(ctx, func(ctx2 context.Context) error {
+	if _, err := i.txManager.DoInTx(ctx, func(ctx2 context.Context) error {
 		archiveID := primitive.NewID()
 
 		event, err := i.eventRepository.GetArchiveEvent(ctx2, request.ArchiveEventID)

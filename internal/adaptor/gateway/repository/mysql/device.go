@@ -26,7 +26,7 @@ func NewDeviceRepository(db boil.ContextExecutor) *DeviceRepository {
 
 func (d *DeviceRepository) GetDevice(ctx context.Context, deviceID primitive.ID) (entity.Device, error) {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = d.db
 	}

@@ -17,23 +17,30 @@ func NewTxManger(db *sql.DB) *TxManager {
 	}
 }
 
-func (t *TxManager) DoInTx(ctx context.Context, operation usecase.Operation) error {
+func (t *TxManager) DoInTx(ctx context.Context, operation usecase.Operation) (context.Context, error) {
 	tx, err := t.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return ctx, err
 	}
 
 	ctx = context.WithValue(ctx, "tx", tx)
 
 	if err := operation(ctx); err != nil {
 		if err := tx.Rollback(); err != nil {
-			return err
+			return ctx, err
 		}
-		return err
+		return ctx, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return err
+		return ctx, err
 	}
-	return nil
+
+	ctx = context.WithValue(ctx, "tx", nil)
+	return ctx, nil
+}
+
+func getTxFromCtx(ctx context.Context) (*sql.Tx, bool) {
+	tx, ok := ctx.Value("tx").(*sql.Tx)
+	return tx, ok
 }

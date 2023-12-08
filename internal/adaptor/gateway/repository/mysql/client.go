@@ -29,7 +29,7 @@ func NewClientRepository(db boil.ContextExecutor) *ClientRepository {
 
 func (i *ClientRepository) GetClient(ctx context.Context, clientID primitive.ID) (entity.Client, error) {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}

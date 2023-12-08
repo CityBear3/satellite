@@ -24,7 +24,7 @@ func NewEventRepository(db boil.ContextExecutor) *EventRepository {
 
 func (r *EventRepository) SaveArchiveEvent(ctx context.Context, archiveEvent entity.ArchiveEvent) error {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = r.db
 	}
@@ -45,7 +45,7 @@ func (r *EventRepository) SaveArchiveEvent(ctx context.Context, archiveEvent ent
 
 func (r *EventRepository) GetArchiveEvent(ctx context.Context, archiveEventID primitive.ID) (entity.ArchiveEvent, error) {
 	var exec boil.ContextExecutor
-	exec, ok := ctx.Value("tx").(*sql.Tx)
+	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = r.db
 	}
