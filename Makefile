@@ -20,3 +20,6 @@ migrate-down:
 
 migrate-drop:
 	migrate --path db/migration --database "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" --verbose drop
+
+run:
+	go run cmd/server/main.go
