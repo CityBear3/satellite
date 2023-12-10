@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
+	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
@@ -25,7 +25,13 @@ func NewDeviceRepository(db boil.ContextExecutor) *DeviceRepository {
 }
 
 func (d *DeviceRepository) GetDevice(ctx context.Context, deviceID primitive.ID) (entity.Device, error) {
-	deviceSchema, err := schema.Devices(schema.DeviceWhere.ID.EQ(deviceID.Value().String())).One(ctx, d.db)
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = d.db
+	}
+
+	deviceSchema, err := schema.Devices(schema.DeviceWhere.ID.EQ(deviceID.Value().String())).One(ctx, exec)
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Device{}, apperrs.NotFoundDeviceError
 	}

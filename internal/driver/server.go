@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/CityBear3/satellite/internal/adaptor/event/rabbitmq"
-	file "github.com/CityBear3/satellite/internal/adaptor/repository/minio"
-	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
+	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql"
+	file "github.com/CityBear3/satellite/internal/adaptor/gateway/transfer/minio"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
 	"github.com/CityBear3/satellite/internal/usecase"

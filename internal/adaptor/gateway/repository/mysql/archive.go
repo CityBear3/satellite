@@ -5,21 +5,21 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
+	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
+	"github.com/CityBear3/satellite/internal/domain/gateway/transfer"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
-	"github.com/CityBear3/satellite/internal/domain/repository"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type ArchiveRepository struct {
 	db           boil.ContextExecutor
-	fileTransfer repository.IFileTransfer
+	fileTransfer transfer.IFileTransfer
 }
 
-func NewArchiveRepository(db boil.ContextExecutor, fileTransfer repository.IFileTransfer) *ArchiveRepository {
+func NewArchiveRepository(db boil.ContextExecutor, fileTransfer transfer.IFileTransfer) *ArchiveRepository {
 	return &ArchiveRepository{
 		db:           db,
 		fileTransfer: fileTransfer,
@@ -28,12 +28,12 @@ func NewArchiveRepository(db boil.ContextExecutor, fileTransfer repository.IFile
 
 func (i *ArchiveRepository) Save(
 	ctx context.Context,
-	rtx repository.ITx,
 	archive entity.Archive,
 ) error {
-	tx, err := ConvertToSqlTx(rtx)
-	if err != nil {
-		return err
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = i.db
 	}
 
 	archiveSchema := schema.Archive{
@@ -43,11 +43,11 @@ func (i *ArchiveRepository) Save(
 		ContentType:    archive.ContentType.Value(),
 	}
 
-	if err := archiveSchema.Upsert(ctx, tx, boil.Infer(), boil.Infer()); err != nil {
+	if err := archiveSchema.Upsert(ctx, exec, boil.Infer(), boil.Infer()); err != nil {
 		return err
 	}
 
-	if err = i.fileTransfer.Save(ctx, archive.ID, archive.ContentType, archive.Data); err != nil {
+	if err := i.fileTransfer.Save(ctx, archive.ID, archive.ContentType, archive.Data); err != nil {
 		return err
 	}
 
@@ -58,7 +58,13 @@ func (i *ArchiveRepository) GetArchive(
 	ctx context.Context,
 	archiveID primitive.ID,
 ) (entity.Archive, error) {
-	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ID.EQ(archiveID.Value().String())).One(ctx, i.db)
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = i.db
+	}
+
+	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ID.EQ(archiveID.Value().String())).One(ctx, exec)
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}
@@ -98,7 +104,13 @@ func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 	ctx context.Context,
 	archiveEventID primitive.ID,
 ) (entity.Archive, error) {
-	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ArchiveEventID.EQ(archiveEventID.Value().String())).One(ctx, i.db)
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = i.db
+	}
+
+	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ArchiveEventID.EQ(archiveEventID.Value().String())).One(ctx, exec)
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}

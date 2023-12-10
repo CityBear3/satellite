@@ -1,4 +1,4 @@
-//go:generate mockgen -source=$GOFILE -package=mock_repository -destination=../../adaptor/repository/mock/$GOFILE
+//go:generate mockgen -source=$GOFILE -package=mock_repository -destination=../../../adaptor/gateway/repository/mock/$GOFILE
 package repository
 
 import (
@@ -9,6 +9,6 @@ import (
 )
 
 type IEventRepository interface {
-	SaveArchiveEvent(ctx context.Context, tx ITx, archiveEvent entity.ArchiveEvent) error
+	SaveArchiveEvent(ctx context.Context, archiveEvent entity.ArchiveEvent) error
 	GetArchiveEvent(ctx context.Context, archiveEventID primitive.ID) (entity.ArchiveEvent, error)
 }

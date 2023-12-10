@@ -3,8 +3,9 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
-	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
+	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
@@ -27,10 +28,16 @@ func NewClientRepository(db boil.ContextExecutor) *ClientRepository {
 }
 
 func (i *ClientRepository) GetClient(ctx context.Context, clientID primitive.ID) (entity.Client, error) {
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = i.db
+	}
+
 	clientSchema, err := schema.Clients(
 		schema.ClientWhere.ID.EQ(clientID.Value().String()),
-		qm.Load("Devices"),
-	).One(ctx, i.db)
+		qm.Load("Devices", qm.Where(fmt.Sprintf("%s=?", schema.DeviceColumns.IsDeleted), false)),
+	).One(ctx, exec)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Client{}, apperrs.NotFoundClientError

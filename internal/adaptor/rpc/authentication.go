@@ -30,19 +30,23 @@ func NewAuthenticationRPCService(
 	}
 }
 
+func (s AuthenticationRPCService) handleError(err error) error {
+	return convertors.ConvertError(s.logger, err)
+}
+
 func (s AuthenticationRPCService) AuthenticateClient(ctx context.Context, request *authPb.AuthenticateRequest) (*authPb.AuthenticateResponse, error) {
 	authenticateRequest, err := convertors.ConvertToAuthenticationRequest(request)
 	if err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	if err = s.authenticationInteractor.AuthenticateClient(ctx, authenticateRequest); err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	token, err := createToken(request.Id, s.hmacSecret)
 	if err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	return &authPb.AuthenticateResponse{
@@ -53,16 +57,16 @@ func (s AuthenticationRPCService) AuthenticateClient(ctx context.Context, reques
 func (s AuthenticationRPCService) AuthenticateDevice(ctx context.Context, request *authPb.AuthenticateRequest) (*authPb.AuthenticateResponse, error) {
 	authenticateRequest, err := convertors.ConvertToAuthenticationRequest(request)
 	if err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	if err = s.authenticationInteractor.AuthenticateDevice(ctx, authenticateRequest); err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	token, err := createToken(request.Id, s.hmacSecret)
 	if err != nil {
-		return nil, convertors.ConvertError(s.logger, err)
+		return nil, s.handleError(err)
 	}
 
 	return &authPb.AuthenticateResponse{

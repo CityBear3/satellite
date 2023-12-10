@@ -5,10 +5,9 @@ import (
 	"database/sql"
 	"errors"
 
-	schema "github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
+	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
-	"github.com/CityBear3/satellite/internal/domain/repository"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
@@ -23,10 +22,11 @@ func NewEventRepository(db boil.ContextExecutor) *EventRepository {
 	}
 }
 
-func (r *EventRepository) SaveArchiveEvent(ctx context.Context, rtx repository.ITx, archiveEvent entity.ArchiveEvent) error {
-	tx, err := ConvertToSqlTx(rtx)
-	if err != nil {
-		return err
+func (r *EventRepository) SaveArchiveEvent(ctx context.Context, archiveEvent entity.ArchiveEvent) error {
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = r.db
 	}
 
 	archiveEventSchema := schema.ArchiveEvent{
@@ -36,7 +36,7 @@ func (r *EventRepository) SaveArchiveEvent(ctx context.Context, rtx repository.I
 		RequestedAt: archiveEvent.RequestedAt,
 	}
 
-	if err := archiveEventSchema.Insert(ctx, tx, boil.Infer()); err != nil {
+	if err := archiveEventSchema.Insert(ctx, exec, boil.Infer()); err != nil {
 		return err
 	}
 
@@ -44,7 +44,13 @@ func (r *EventRepository) SaveArchiveEvent(ctx context.Context, rtx repository.I
 }
 
 func (r *EventRepository) GetArchiveEvent(ctx context.Context, archiveEventID primitive.ID) (entity.ArchiveEvent, error) {
-	event, err := schema.ArchiveEvents(schema.ArchiveEventWhere.ID.EQ(archiveEventID.Value().String())).One(ctx, r.db)
+	var exec boil.ContextExecutor
+	exec, ok := getTxFromCtx(ctx)
+	if !ok {
+		exec = r.db
+	}
+
+	event, err := schema.ArchiveEvents(schema.ArchiveEventWhere.ID.EQ(archiveEventID.Value().String())).One(ctx, exec)
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.ArchiveEvent{}, apperrs.NotFoundArchiveEventError
 	}

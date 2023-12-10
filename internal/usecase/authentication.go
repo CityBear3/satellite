@@ -3,9 +3,9 @@ package usecase
 import (
 	"context"
 
+	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
-	"github.com/CityBear3/satellite/internal/domain/repository"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/internal/pkg/auth"
 )
