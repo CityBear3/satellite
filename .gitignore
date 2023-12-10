@@ -30,3 +30,4 @@ go.work
 docker/minio/data/**
 docker/mysql/db/**
 
+deployment/secrets.yml
