@@ -21,7 +21,7 @@ func NewEventRepository(db Executor) *EventRepository {
 	}
 }
 
-const saveArchiveEventQuery = `
+const saveArchiveEventCmd = `
 INSERT INTO archive_event (id, device_id, client_id, requested_at) VALUE (?, ?, ?, ?) AS new
 	ON DUPLICATE KEY UPDATE
 	                    id = new.id,
@@ -37,7 +37,7 @@ func (r *EventRepository) SaveArchiveEvent(ctx context.Context, archiveEvent ent
 		exec = r.db
 	}
 
-	if _, err := exec.ExecContext(ctx, saveArchiveEventQuery, archiveEvent.ID.Value().String(), archiveEvent.DeviceID.Value().String(),
+	if _, err := exec.ExecContext(ctx, saveArchiveEventCmd, archiveEvent.ID.Value().String(), archiveEvent.DeviceID.Value().String(),
 		archiveEvent.ClientID.Value().String(), archiveEvent.RequestedAt); err != nil {
 		return err
 	}
