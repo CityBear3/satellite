@@ -21,7 +21,7 @@ func TestArchive_CheckCorrectCall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	clientName, err := client.NewClientName("test")
+	clientName, err := client.NewName("test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestArchive_CheckCorrectCall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	archiveEntity := NewArchive(primitive.NewID(), primitive.NewID(), contentType, primitive.NewID(), data)
+	archiveEntity := NewArchive(primitive.NewID(), primitive.NewID(), contentType, primitive.NewID(), &data)
 	deviceEntity := NewDevice(archiveEntity.DeviceID, deviceName, nil, primitive.NewID())
 
 	tests := []struct {

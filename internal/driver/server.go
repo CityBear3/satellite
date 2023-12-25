@@ -1,7 +1,6 @@
 package driver
 
 import (
-	"database/sql"
 	"fmt"
 	"net"
 	"os"
@@ -19,6 +18,7 @@ import (
 	"github.com/CityBear3/satellite/pb/authentication/v1"
 	"github.com/CityBear3/satellite/pb/event/v1"
 	grpcLog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -65,7 +65,7 @@ func (s *Server) Serve() error {
 		return err
 	}
 
-	defer func(db *sql.DB) {
+	defer func(db *sqlx.DB) {
 		err := db.Close()
 		if err != nil {
 			panic(err)

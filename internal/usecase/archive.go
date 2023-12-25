@@ -72,7 +72,7 @@ func (i *ArchiveInteractor) CreateArchive(
 			return err
 		}
 
-		archiveEntity := entity.NewArchive(archiveID, request.ArchiveEventID, request.ContentType, device.ID, request.Data)
+		archiveEntity := entity.NewArchive(archiveID, request.ArchiveEventID, request.ContentType, device.ID, &request.Data)
 		if err := i.archiveRepository.Save(ctx2, archiveEntity); err != nil {
 			return err
 		}
@@ -104,6 +104,6 @@ func (i *ArchiveInteractor) GetArchive(
 		ArchiveEventID: archiveEntity.ArchiveEventID,
 		ContentType:    archiveEntity.ContentType,
 		DeviceID:       archiveEntity.DeviceID,
-		Data:           archiveEntity.Data,
+		Data:           *archiveEntity.Data,
 	}, nil
 }

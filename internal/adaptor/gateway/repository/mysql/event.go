@@ -5,52 +5,60 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
+	schema "github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type EventRepository struct {
-	db boil.ContextExecutor
+	db Executor
 }
 
-func NewEventRepository(db boil.ContextExecutor) *EventRepository {
+func NewEventRepository(db Executor) *EventRepository {
 	return &EventRepository{
 		db: db,
 	}
 }
 
+const saveArchiveEventQuery = `
+INSERT INTO archive_event (id, device_id, client_id, requested_at) VALUE (?, ?, ?, ?) AS new
+	ON DUPLICATE KEY UPDATE
+	                    id = new.id,
+	                 	device_id = new.device_id,
+	                    client_id = new.client_id,
+	                	requested_at = new.requested_at;
+`
+
 func (r *EventRepository) SaveArchiveEvent(ctx context.Context, archiveEvent entity.ArchiveEvent) error {
-	var exec boil.ContextExecutor
+	var exec Executor
 	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = r.db
 	}
 
-	archiveEventSchema := schema.ArchiveEvent{
-		ID:          archiveEvent.ID.Value().String(),
-		DeviceID:    archiveEvent.DeviceID.Value().String(),
-		ClientID:    archiveEvent.ClientID.Value().String(),
-		RequestedAt: archiveEvent.RequestedAt,
-	}
-
-	if err := archiveEventSchema.Insert(ctx, exec, boil.Infer()); err != nil {
+	if _, err := exec.ExecContext(ctx, saveArchiveEventQuery, archiveEvent.ID.Value().String(), archiveEvent.DeviceID.Value().String(),
+		archiveEvent.ClientID.Value().String(), archiveEvent.RequestedAt); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+const getArchiveEventQuery = `
+SELECT * FROM archive_event WHERE id = ?;
+`
+
 func (r *EventRepository) GetArchiveEvent(ctx context.Context, archiveEventID primitive.ID) (entity.ArchiveEvent, error) {
-	var exec boil.ContextExecutor
+	var exec Executor
 	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = r.db
 	}
 
-	event, err := schema.ArchiveEvents(schema.ArchiveEventWhere.ID.EQ(archiveEventID.Value().String())).One(ctx, exec)
+	var record schema.ArchiveEventSchema
+	err := exec.QueryRowxContext(ctx, getArchiveEventQuery, archiveEventID.Value().String()).StructScan(&record)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.ArchiveEvent{}, apperrs.NotFoundArchiveEventError
 	}
@@ -59,17 +67,17 @@ func (r *EventRepository) GetArchiveEvent(ctx context.Context, archiveEventID pr
 		return entity.ArchiveEvent{}, err
 	}
 
-	id, err := primitive.ParseID(event.ID)
+	id, err := primitive.ParseID(record.ID)
 	if err != nil {
 		return entity.ArchiveEvent{}, err
 	}
 
-	deviceID, err := primitive.ParseID(event.DeviceID)
+	deviceID, err := primitive.ParseID(record.DeviceID)
 	if err != nil {
 		return entity.ArchiveEvent{}, err
 	}
 
-	clientID, err := primitive.ParseID(event.ClientID)
+	clientID, err := primitive.ParseID(record.ClientID)
 	if err != nil {
 		return entity.ArchiveEvent{}, err
 	}

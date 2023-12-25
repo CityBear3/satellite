@@ -9,7 +9,7 @@ import (
 type Device struct {
 	ID        primitive.ID
 	Name      device.DeviceName
-	Secret    authentication.Secret
+	Secrets   authentication.Secrets
 	ClientID  primitive.ID
 	IsDeleted bool
 }
@@ -17,13 +17,13 @@ type Device struct {
 func NewDevice(
 	id primitive.ID,
 	name device.DeviceName,
-	secret authentication.Secret,
+	secrets authentication.Secrets,
 	clientID primitive.ID,
 ) Device {
 	return Device{
 		ID:       id,
 		Name:     name,
-		Secret:   secret,
+		Secrets:  secrets,
 		ClientID: clientID,
 	}
 }

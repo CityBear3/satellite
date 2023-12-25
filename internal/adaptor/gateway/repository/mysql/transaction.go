@@ -2,23 +2,30 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/CityBear3/satellite/internal/usecase"
+	"github.com/jmoiron/sqlx"
 )
 
-type TxManager struct {
-	db *sql.DB
+type Executor interface {
+	sqlx.ExtContext
+	sqlx.Ext
+	Select(dest interface{}, query string, args ...interface{}) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
-func NewTxManger(db *sql.DB) *TxManager {
+type TxManager struct {
+	db *sqlx.DB
+}
+
+func NewTxManger(db *sqlx.DB) *TxManager {
 	return &TxManager{
 		db: db,
 	}
 }
 
 func (t *TxManager) DoInTx(ctx context.Context, operation usecase.Operation) (context.Context, error) {
-	tx, err := t.db.BeginTx(ctx, nil)
+	tx, err := t.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return ctx, err
 	}
@@ -40,7 +47,7 @@ func (t *TxManager) DoInTx(ctx context.Context, operation usecase.Operation) (co
 	return ctx, nil
 }
 
-func getTxFromCtx(ctx context.Context) (*sql.Tx, bool) {
-	tx, ok := ctx.Value("tx").(*sql.Tx)
+func getTxFromCtx(ctx context.Context) (*sqlx.Tx, bool) {
+	tx, ok := ctx.Value("tx").(*sqlx.Tx)
 	return tx, ok
 }

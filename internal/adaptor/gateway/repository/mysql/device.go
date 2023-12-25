@@ -3,35 +3,44 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"errors"
 
-	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
+	schema "github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
-	"github.com/CityBear3/satellite/internal/domain/primitive/authentication"
-	"github.com/CityBear3/satellite/internal/domain/primitive/device"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
-	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type DeviceRepository struct {
-	db boil.ContextExecutor
+	db Executor
 }
 
-func NewDeviceRepository(db boil.ContextExecutor) *DeviceRepository {
+func NewDeviceRepository(db Executor) *DeviceRepository {
 	return &DeviceRepository{
 		db: db,
 	}
 }
 
+const getDeviceQuery = `SELECT 
+    	id AS id,
+    	name AS name,
+    	secrets AS secrets,
+    	client_id AS client_id,
+    	created_at AS created_at,
+    	updated_at AS updated_at
+    FROM satellite.device 
+    WHERE id = ?;`
+
 func (d *DeviceRepository) GetDevice(ctx context.Context, deviceID primitive.ID) (entity.Device, error) {
-	var exec boil.ContextExecutor
+	var exec Executor
 	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = d.db
 	}
 
-	deviceSchema, err := schema.Devices(schema.DeviceWhere.ID.EQ(deviceID.Value().String())).One(ctx, exec)
+	var record schema.DeviceSchema
+	err := exec.QueryRowxContext(ctx, getDeviceQuery, deviceID.Value().String()).StructScan(&record)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Device{}, apperrs.NotFoundDeviceError
 	}
@@ -40,30 +49,5 @@ func (d *DeviceRepository) GetDevice(ctx context.Context, deviceID primitive.ID)
 		return entity.Device{}, err
 	}
 
-	id, err := primitive.ParseID(deviceSchema.ID)
-	if err != nil {
-		return entity.Device{}, err
-	}
-
-	name, err := device.NewDeviceName(deviceSchema.Name)
-	if err != nil {
-		return entity.Device{}, err
-	}
-
-	secret, err := authentication.NewHashedSecret(deviceSchema.Secret)
-	if err != nil {
-		return entity.Device{}, err
-	}
-
-	clientID, err := primitive.ParseID(deviceSchema.ClientID)
-	if err != nil {
-		return entity.Device{}, err
-	}
-
-	return entity.Device{
-		ID:       id,
-		Name:     name,
-		Secret:   secret,
-		ClientID: clientID,
-	}, nil
+	return record.MapToDevice()
 }

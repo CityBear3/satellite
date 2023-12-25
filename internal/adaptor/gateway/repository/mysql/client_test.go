@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
@@ -12,6 +11,7 @@ import (
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +23,7 @@ func TestClientRepository_GetClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer func(db *sql.DB) {
+	defer func(db *sqlx.DB) {
 		if err := db.Close(); err != nil {
 			t.Fatal(err)
 		}
@@ -47,7 +47,7 @@ func TestClientRepository_GetClient(t *testing.T) {
 
 	device := entity.NewDevice(primitive.NewID(), deviceName, generatedSecret, clientID)
 
-	clientName, err := client.NewClientName("test")
+	clientName, err := client.NewName("test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestClientRepository_GetClient(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tx, err := db.BeginTx(ctx, nil)
+		tx, err := db.BeginTxx(ctx, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -106,7 +106,7 @@ func TestClientRepository_GetClient(t *testing.T) {
 		sut := NewClientRepository(tx)
 
 		for _, operator := range tt.tables {
-			if err := operator.Insert(ctx, tx); err != nil {
+			if err := operator.Insert(ctx, tx.Tx); err != nil {
 				t.Error(err)
 				return
 			}
@@ -124,7 +124,7 @@ func TestClientRepository_GetClient(t *testing.T) {
 			assert.Equal(t, tt.want.Name, got.Name)
 			assert.Equal(t, len(tt.want.Devices), len(got.Devices))
 
-			value, err := got.Secret.Value()
+			value, err := got.Secrets.Value()
 			assert.NoError(t, err)
 
 			assert.Equal(t, secretValue, value)

@@ -17,8 +17,8 @@ type (
 	}
 
 	AuthenticateRequest struct {
-		ID     primitive.ID
-		Secret authentication.Secret
+		ID      primitive.ID
+		Secrets authentication.Secrets
 	}
 )
 
@@ -38,7 +38,7 @@ func NewAuthenticationInteractor(
 }
 
 func (i AuthenticationInteractor) AuthenticateClient(ctx context.Context, request AuthenticateRequest) error {
-	if request.Secret == nil {
+	if request.Secrets == nil {
 		return apperrs.UnexpectedError
 	}
 
@@ -47,11 +47,11 @@ func (i AuthenticationInteractor) AuthenticateClient(ctx context.Context, reques
 		return err
 	}
 
-	return auth.CompareSecret(client.Secret, request.Secret)
+	return auth.CompareSecret(client.Secrets, request.Secrets)
 }
 
 func (i AuthenticationInteractor) AuthenticateDevice(ctx context.Context, request AuthenticateRequest) error {
-	if request.Secret == nil {
+	if request.Secrets == nil {
 		return apperrs.UnexpectedError
 	}
 
@@ -60,5 +60,5 @@ func (i AuthenticationInteractor) AuthenticateDevice(ctx context.Context, reques
 		return err
 	}
 
-	return auth.CompareSecret(device.Secret, request.Secret)
+	return auth.CompareSecret(device.Secrets, request.Secrets)
 }

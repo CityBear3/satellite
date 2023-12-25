@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	mock_transfer "github.com/CityBear3/satellite/internal/adaptor/gateway/transfer/mock"
@@ -13,6 +12,7 @@ import (
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/oklog/ulid/v2"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -21,7 +21,7 @@ import (
 func TestArchiveRepository_Save(t *testing.T) {
 	type args struct {
 		ctx     context.Context
-		tx      *sql.Tx
+		tx      *sqlx.Tx
 		archive entity.Archive
 	}
 	type test struct {
@@ -37,7 +37,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer func(db *sql.DB) {
+	defer func(db *sqlx.DB) {
 		err := db.Close()
 		if err != nil {
 			panic(err)
@@ -46,7 +46,7 @@ func TestArchiveRepository_Save(t *testing.T) {
 
 	ctx := context.Background()
 
-	tx, err := db.BeginTx(ctx, nil)
+	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -102,14 +102,14 @@ func TestArchiveRepository_Save(t *testing.T) {
 				"SELECT * FROM `archive` WHERE `id`=?",
 			},
 			mocks: func(mockFileTransfer *mock_transfer.MockIFileTransfer) {
-				mockFileTransfer.EXPECT().Save(ctx, archiveID, contentType, archive.Data{}).Return(nil)
+				mockFileTransfer.EXPECT().Save(ctx, archiveID, contentType, nil).Return(nil)
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		for _, operator := range tt.tables {
-			if err := operator.Insert(ctx, tx); err != nil {
+			if err := operator.Insert(ctx, tx.Tx); err != nil {
 				t.Error(err)
 				return
 			}
@@ -170,7 +170,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func(db *sql.DB) {
+	defer func(db *sqlx.DB) {
 		err := db.Close()
 		if err != nil {
 			panic(err)
@@ -226,7 +226,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 				ContentType:    contentType,
 			},
 			mocks: func(mockFileTransfer *mock_transfer.MockIFileTransfer) {
-				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil)
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(&archive.Data{}, nil)
 			},
 		},
 		{
@@ -237,13 +237,13 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 			},
 			expectedErr: apperrs.NotFoundArchiveError,
 			mocks: func(mockFileTransfer *mock_transfer.MockIFileTransfer) {
-				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil).Times(0)
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(&archive.Data{}, nil).Times(0)
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		tx, err := db.BeginTx(ctx, nil)
+		tx, err := db.BeginTxx(ctx, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -252,7 +252,7 @@ func TestArchiveRepository_GetArchive(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			for _, operator := range tt.tables {
-				if err := operator.Insert(tt.args.ctx, tx); err != nil {
+				if err := operator.Insert(tt.args.ctx, tx.Tx); err != nil {
 					t.Error(err)
 					return
 				}
@@ -295,7 +295,7 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func(db *sql.DB) {
+	defer func(db *sqlx.DB) {
 		err := db.Close()
 		if err != nil {
 			panic(err)
@@ -351,7 +351,7 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 				ContentType:    contentType,
 			},
 			mocks: func(mockFileTransfer *mock_transfer.MockIFileTransfer) {
-				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil)
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(&archive.Data{}, nil)
 			},
 		},
 		{
@@ -362,13 +362,13 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 			},
 			expectedErr: apperrs.NotFoundArchiveError,
 			mocks: func(mockFileTransfer *mock_transfer.MockIFileTransfer) {
-				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(archive.Data{}, nil).Times(0)
+				mockFileTransfer.EXPECT().GetFile(ctx, archiveID, contentType).Return(&archive.Data{}, nil).Times(0)
 			},
 		},
 	}
 
 	for _, tt := range tests {
-		tx, err := db.BeginTx(ctx, nil)
+		tx, err := db.BeginTxx(ctx, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -377,7 +377,7 @@ func TestArchiveRepository_GetArchiveByArchiveEventID(t *testing.T) {
 		sut := NewArchiveRepository(tx, mockFileTransfer)
 
 		for _, operator := range tt.tables {
-			if err := operator.Insert(tt.args.ctx, tx); err != nil {
+			if err := operator.Insert(tt.args.ctx, tx.Tx); err != nil {
 				t.Error(err)
 				return
 			}

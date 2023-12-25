@@ -13,7 +13,7 @@ type Archive struct {
 	ArchiveEventID primitive.ID
 	ContentType    archive.ContentType
 	DeviceID       primitive.ID
-	Data           archive.Data
+	Data           *archive.Data
 }
 
 func NewArchive(
@@ -21,7 +21,7 @@ func NewArchive(
 	archiveEventID primitive.ID,
 	contentType archive.ContentType,
 	deviceId primitive.ID,
-	data archive.Data,
+	data *archive.Data,
 ) Archive {
 	return Archive{
 		ID:             id,

@@ -14,7 +14,7 @@ type ClientTable struct {
 }
 
 func (t ClientTable) Insert(ctx context.Context, tx *sql.Tx) error {
-	_, err := tx.ExecContext(ctx, "INSERT INTO `client` (id, name, secret) VALUE (?, ?, ?)", t.Id, t.Name, t.Secret)
+	_, err := tx.ExecContext(ctx, "INSERT INTO `client` (id, name, secrets) VALUE (?, ?, ?)", t.Id, t.Name, t.Secret)
 	if err != nil {
 		return err
 	}
