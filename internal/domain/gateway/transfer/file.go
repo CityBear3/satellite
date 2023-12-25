@@ -9,6 +9,6 @@ import (
 )
 
 type IFileTransfer interface {
-	Save(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType, data archive.Data) error
-	GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (archive.Data, error)
+	Save(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType, data *archive.Data) error
+	GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (*archive.Data, error)
 }

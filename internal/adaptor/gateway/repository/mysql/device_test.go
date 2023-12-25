@@ -2,7 +2,6 @@ package mysql
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/CityBear3/satellite/internal/domain/entity"
@@ -11,6 +10,7 @@ import (
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 	"github.com/CityBear3/satellite/testutils/helper"
 	"github.com/CityBear3/satellite/testutils/table"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +22,7 @@ func TestDeviceRepository_GetDevice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer func(db *sql.DB) {
+	defer func(db *sqlx.DB) {
 		if err := db.Close(); err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +88,7 @@ func TestDeviceRepository_GetDevice(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tx, err := db.BeginTx(ctx, nil)
+		tx, err := db.BeginTxx(ctx, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -96,7 +96,7 @@ func TestDeviceRepository_GetDevice(t *testing.T) {
 		sut := NewDeviceRepository(tx)
 
 		for _, operator := range tt.tables {
-			if err := operator.Insert(ctx, tx); err != nil {
+			if err := operator.Insert(ctx, tx.Tx); err != nil {
 				t.Error(err)
 				return
 			}
@@ -115,7 +115,7 @@ func TestDeviceRepository_GetDevice(t *testing.T) {
 			assert.Equal(t, tt.want.ClientID, got.ClientID)
 			assert.Equal(t, tt.want.IsDeleted, got.IsDeleted)
 
-			insertedSecret, err := got.Secret.Value()
+			insertedSecret, err := got.Secrets.Value()
 			if err != nil {
 				t.Error(err)
 				return

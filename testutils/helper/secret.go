@@ -5,7 +5,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GenerateSecret() (*authentication.HashedSecret, error) {
+func GenerateSecret() (*authentication.HashedSecrets, error) {
 	secret := "test-1234"
 
 	value, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.DefaultCost)
@@ -13,7 +13,7 @@ func GenerateSecret() (*authentication.HashedSecret, error) {
 		return nil, err
 	}
 
-	newSecret, err := authentication.NewHashedSecret(string(value))
+	newSecret, err := authentication.NewHashedSecrets(string(value))
 	if err != nil {
 		return nil, err
 	}

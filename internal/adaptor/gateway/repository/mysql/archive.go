@@ -5,45 +5,47 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
+	schema "github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/gateway/transfer"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type ArchiveRepository struct {
-	db           boil.ContextExecutor
+	db           Executor
 	fileTransfer transfer.IFileTransfer
 }
 
-func NewArchiveRepository(db boil.ContextExecutor, fileTransfer transfer.IFileTransfer) *ArchiveRepository {
+func NewArchiveRepository(db Executor, fileTransfer transfer.IFileTransfer) *ArchiveRepository {
 	return &ArchiveRepository{
 		db:           db,
 		fileTransfer: fileTransfer,
 	}
 }
 
+const saveArchiveCmd = `
+INSERT INTO archive (id, archive_event_id, content_type, device_id) VALUE (?, ?, ?, ?) AS new
+	ON DUPLICATE KEY UPDATE
+		id = new.id,
+		archive_event_id = new.archive_event_id,
+		content_type = new.content_type,
+		device_id = new.device_id;
+`
+
 func (i *ArchiveRepository) Save(
 	ctx context.Context,
 	archive entity.Archive,
 ) error {
-	var exec boil.ContextExecutor
+	var exec Executor
 	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}
 
-	archiveSchema := schema.Archive{
-		ID:             archive.ID.Value().String(),
-		DeviceID:       archive.DeviceID.Value().String(),
-		ArchiveEventID: archive.ArchiveEventID.Value().String(),
-		ContentType:    archive.ContentType.Value(),
-	}
-
-	if err := archiveSchema.Upsert(ctx, exec, boil.Infer(), boil.Infer()); err != nil {
+	if _, err := exec.ExecContext(ctx, saveArchiveCmd, archive.ID.Value().String(), archive.ArchiveEventID.Value().String(),
+		archive.ContentType.Value(), archive.DeviceID.Value().String()); err != nil {
 		return err
 	}
 
@@ -54,63 +56,62 @@ func (i *ArchiveRepository) Save(
 	return nil
 }
 
+const getArchiveQuery = `
+SELECT id, archive_event_id, content_type, device_id FROM archive WHERE id = ?;
+`
+
 func (i *ArchiveRepository) GetArchive(
 	ctx context.Context,
 	archiveID primitive.ID,
 ) (entity.Archive, error) {
-	var exec boil.ContextExecutor
+	var exec Executor
 	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}
 
-	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ID.EQ(archiveID.Value().String())).One(ctx, exec)
+	var record schema.ArchiveScheme
+	err := exec.QueryRowxContext(ctx, getArchiveQuery, archiveID.Value().String()).StructScan(&record)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}
+
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	id, err := primitive.ParseID(archiveSchema.ID)
+	var data *archive.Data
+	archiveEntity, err := record.MapToArchive(data)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	archiveEventID, err := primitive.ParseID(archiveSchema.ArchiveEventID)
+	data, err = i.fileTransfer.GetFile(ctx, archiveEntity.ID, archiveEntity.ContentType)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	deviceID, err := primitive.ParseID(archiveSchema.DeviceID)
-	if err != nil {
-		return entity.Archive{}, err
-	}
-
-	contentType, err := archive.NewContentType(archiveSchema.ContentType)
-	if err != nil {
-		return entity.Archive{}, err
-	}
-
-	data, err := i.fileTransfer.GetFile(ctx, archiveID, contentType)
-	if err != nil {
-		return entity.Archive{}, err
-	}
-
-	return entity.NewArchive(id, archiveEventID, contentType, deviceID, data), nil
+	return archiveEntity, nil
 }
+
+const getArchiveByArchiveEventIDQuery = `
+SELECT id, archive_event_id, content_type, device_id FROM archive WHERE archive_event_id = ?;
+`
 
 func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 	ctx context.Context,
 	archiveEventID primitive.ID,
 ) (entity.Archive, error) {
-	var exec boil.ContextExecutor
+	var exec Executor
 	exec, ok := getTxFromCtx(ctx)
 	if !ok {
 		exec = i.db
 	}
 
-	archiveSchema, err := schema.Archives(schema.ArchiveWhere.ArchiveEventID.EQ(archiveEventID.Value().String())).One(ctx, exec)
+	var record schema.ArchiveScheme
+	err := exec.QueryRowxContext(ctx, getArchiveByArchiveEventIDQuery, archiveEventID.Value().String()).StructScan(&record)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}
@@ -119,30 +120,16 @@ func (i *ArchiveRepository) GetArchiveByArchiveEventID(
 		return entity.Archive{}, err
 	}
 
-	id, err := primitive.ParseID(archiveSchema.ID)
+	var data *archive.Data
+	archiveEntity, err := record.MapToArchive(data)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	archiveEventID, err = primitive.ParseID(archiveSchema.ArchiveEventID)
+	data, err = i.fileTransfer.GetFile(ctx, archiveEntity.ID, archiveEntity.ContentType)
 	if err != nil {
 		return entity.Archive{}, err
 	}
 
-	deviceID, err := primitive.ParseID(archiveSchema.DeviceID)
-	if err != nil {
-		return entity.Archive{}, err
-	}
-
-	contentType, err := archive.NewContentType(archiveSchema.ContentType)
-	if err != nil {
-		return entity.Archive{}, err
-	}
-
-	data, err := i.fileTransfer.GetFile(ctx, id, contentType)
-	if err != nil {
-		return entity.Archive{}, err
-	}
-
-	return entity.NewArchive(id, archiveEventID, contentType, deviceID, data), nil
+	return archiveEntity, nil
 }

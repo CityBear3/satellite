@@ -1,12 +1,16 @@
 package helper
 
-import "database/sql"
+import (
+	"database/sql"
 
-func GetTestDB() (*sql.DB, error) {
+	"github.com/jmoiron/sqlx"
+)
+
+func GetTestDB() (*sqlx.DB, error) {
 	db, err := sql.Open("mysql", "satellite:satellite@tcp(localhost:3307)/satellite?parseTime=true")
 	if err != nil {
 		return nil, err
 	}
 
-	return db, nil
+	return sqlx.NewDb(db, "mysql"), nil
 }

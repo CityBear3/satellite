@@ -41,10 +41,10 @@ func (m *MockIFileTransfer) EXPECT() *MockIFileTransferMockRecorder {
 }
 
 // GetFile mocks base method.
-func (m *MockIFileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (archive.Data, error) {
+func (m *MockIFileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (*archive.Data, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFile", ctx, archiveID, contentType)
-	ret0, _ := ret[0].(archive.Data)
+	ret0, _ := ret[0].(*archive.Data)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -56,7 +56,7 @@ func (mr *MockIFileTransferMockRecorder) GetFile(ctx, archiveID, contentType any
 }
 
 // Save mocks base method.
-func (m *MockIFileTransfer) Save(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType, data archive.Data) error {
+func (m *MockIFileTransfer) Save(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType, data *archive.Data) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", ctx, archiveID, contentType, data)
 	ret0, _ := ret[0].(error)

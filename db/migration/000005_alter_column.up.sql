@@ -1,0 +1,4 @@
+ALTER TABLE client
+    CHANGE COLUMN secret secrets VARCHAR(255) NOT NULL;
+ALTER TABLE device
+    CHANGE COLUMN secret secrets VARCHAR(255) NOT NULL;

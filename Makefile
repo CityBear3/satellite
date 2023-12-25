@@ -6,9 +6,6 @@ gen-proto:
 test:
 	go test -v ./...
 
-gen-schema:
-	sqlboiler mysql -c database.toml -o ./internal/adaptor/repository/mysql/shcema -p schema --no-tests --wipe
-
 gen-migration:
 	migrate create -ext sql -dir ./db/migration -seq ${MIGRATION}
 
@@ -23,3 +20,6 @@ migrate-drop:
 
 run:
 	go run cmd/server/main.go
+
+build:
+	go build -o ./build/server ./cmd/server/main.go

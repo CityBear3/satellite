@@ -13,7 +13,7 @@ type DeviceTable struct {
 }
 
 func (t DeviceTable) Insert(ctx context.Context, tx *sql.Tx) error {
-	_, err := tx.ExecContext(ctx, "INSERT INTO `device` (id, name, secret, client_id) VALUE (?, ?, ?, ?)",
+	_, err := tx.ExecContext(ctx, "INSERT INTO `device` (id, name, secrets, client_id) VALUE (?, ?, ?, ?)",
 		t.Id, t.Name, t.Secret, t.ClientId)
 	if err != nil {
 		return err

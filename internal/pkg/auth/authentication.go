@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CompareSecret(hashed authentication.Secret, row authentication.Secret) error {
+func CompareSecret(hashed authentication.Secrets, row authentication.Secrets) error {
 	h, err := hashed.Value()
 	if err != nil {
 		return err

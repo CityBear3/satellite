@@ -27,8 +27,12 @@ func (f FileTransfer) Save(
 	ctx context.Context,
 	archiveID primitive.ID,
 	contentType archive.ContentType,
-	data archive.Data,
+	data *archive.Data,
 ) error {
+	if data == nil {
+		return nil
+	}
+
 	if _, err := f.client.PutObject(
 		ctx, f.bucketName,
 		fmt.Sprintf("%s.%s", archiveID.String(), contentType.GetExt()),
@@ -41,7 +45,7 @@ func (f FileTransfer) Save(
 	return nil
 }
 
-func (f FileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (archive.Data, error) {
+func (f FileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, contentType archive.ContentType) (*archive.Data, error) {
 	object, err := f.client.GetObject(
 		ctx,
 		f.bucketName,
@@ -58,7 +62,7 @@ func (f FileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, conte
 		}
 
 		if err != nil {
-			return archive.Data{}, err
+			return nil, err
 		}
 
 		buf = append(buf, tmp...)
@@ -66,8 +70,8 @@ func (f FileTransfer) GetFile(ctx context.Context, archiveID primitive.ID, conte
 
 	data, err := archive.NewData(buf)
 	if err != nil {
-		return archive.Data{}, err
+		return nil, err
 	}
 
-	return data, nil
+	return &data, nil
 }

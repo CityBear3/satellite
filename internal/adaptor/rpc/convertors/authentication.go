@@ -13,10 +13,10 @@ func ConvertToAuthenticationRequest(request *authPb.AuthenticateRequest) (usecas
 		return usecase.AuthenticateRequest{}, err
 	}
 
-	rowSecret := authentication.NewRawSecret(request.GetSecret())
+	rowSecret := authentication.NewRawSecrets(request.GetSecret())
 
 	return usecase.AuthenticateRequest{
-		ID:     parseID,
-		Secret: rowSecret,
+		ID:      parseID,
+		Secrets: rowSecret,
 	}, nil
 }

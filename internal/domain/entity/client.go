@@ -8,16 +8,16 @@ import (
 
 type Client struct {
 	ID      primitive.ID
-	Name    client.ClientName
-	Secret  authentication.Secret
+	Name    client.Name
+	Secrets authentication.Secrets
 	Devices []Device
 }
 
-func NewClient(id primitive.ID, name client.ClientName, secret authentication.Secret, devices []Device) Client {
+func NewClient(id primitive.ID, name client.Name, secrets authentication.Secrets, devices []Device) Client {
 	return Client{
 		ID:      id,
 		Name:    name,
-		Secret:  secret,
+		Secrets: secrets,
 		Devices: devices,
 	}
 }

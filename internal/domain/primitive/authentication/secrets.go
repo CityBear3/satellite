@@ -6,28 +6,28 @@ import (
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
 )
 
-type Secret interface {
+type Secrets interface {
 	checkReadOnce() error
 	Value() (string, error)
 }
 
-type HashedSecret struct {
+type HashedSecrets struct {
 	value    string
 	once     sync.Once
 	consumed bool
 }
 
-func NewHashedSecret(value string) (*HashedSecret, error) {
+func NewHashedSecrets(value string) (*HashedSecrets, error) {
 	if len(value) != 60 || ("$2a$10" != value[0:6]) {
 		return nil, apperrs.UnexpectedError
 	}
 
-	return &HashedSecret{
+	return &HashedSecrets{
 		value: value,
 	}, nil
 }
 
-func (s *HashedSecret) Value() (string, error) {
+func (s *HashedSecrets) Value() (string, error) {
 	if err := s.checkReadOnce(); err != nil {
 		return "", err
 	}
@@ -35,7 +35,7 @@ func (s *HashedSecret) Value() (string, error) {
 	return s.value, nil
 }
 
-func (s *HashedSecret) checkReadOnce() error {
+func (s *HashedSecrets) checkReadOnce() error {
 	if s.consumed {
 		return apperrs.UnexpectedError
 	}
@@ -47,19 +47,19 @@ func (s *HashedSecret) checkReadOnce() error {
 	return nil
 }
 
-type RawSecret struct {
+type RawSecrets struct {
 	value    string
 	once     sync.Once
 	consumed bool
 }
 
-func NewRawSecret(value string) *RawSecret {
-	return &RawSecret{
+func NewRawSecrets(value string) *RawSecrets {
+	return &RawSecrets{
 		value: value,
 	}
 }
 
-func (s *RawSecret) Value() (string, error) {
+func (s *RawSecrets) Value() (string, error) {
 	if err := s.checkReadOnce(); err != nil {
 		return "", err
 	}
@@ -67,7 +67,7 @@ func (s *RawSecret) Value() (string, error) {
 	return s.value, nil
 }
 
-func (s *RawSecret) checkReadOnce() error {
+func (s *RawSecrets) checkReadOnce() error {
 	if s.consumed {
 		return apperrs.UnexpectedError
 	}
