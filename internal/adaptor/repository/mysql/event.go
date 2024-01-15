@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mysql/shcema"
+	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
