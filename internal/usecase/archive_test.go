@@ -4,13 +4,13 @@ import (
 	"context"
 	"testing"
 
-	mock_repository "github.com/CityBear3/satellite/internal/adaptor/gateway/repository/mock"
+	"github.com/CityBear3/satellite/internal/adaptor/repository/mock"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/device"
 	"github.com/CityBear3/satellite/internal/usecase"
-	mock_usecase "github.com/CityBear3/satellite/internal/usecase/mock"
+	"github.com/CityBear3/satellite/internal/usecase/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
