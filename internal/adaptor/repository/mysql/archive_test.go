@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/CityBear3/satellite/internal/adaptor/transfer/mock"
+	"github.com/CityBear3/satellite/internal/adaptor/handler/mock"
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/archive"

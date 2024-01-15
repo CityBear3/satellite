@@ -9,11 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/CityBear3/satellite/internal/adaptor/event/rabbitmq"
+	"github.com/CityBear3/satellite/internal/adaptor/handler"
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
-	file "github.com/CityBear3/satellite/internal/adaptor/transfer/minio"
 	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/archive/v1"
 	"github.com/CityBear3/satellite/pb/authentication/v1"
@@ -80,7 +79,7 @@ func (s *Server) Serve() error {
 		},
 	)
 
-	fileTransfer := file.NewFileTransfer(minioClient, minioCfg.BucketName)
+	fileTransfer := handler.NewFileTransfer(minioClient, minioCfg.BucketName)
 
 	// repository
 	txManager := mysql.NewTxManger(db)
@@ -96,7 +95,7 @@ func (s *Server) Serve() error {
 		return err
 	}
 
-	eventHandler := rabbitmq.NewEventHandler(logger, conn)
+	eventHandler := handler.NewEventHandler(logger, conn)
 
 	// interactor
 	archiveInteractor := usecase.NewArchiveInteractor(archiveRepository, eventRepository, txManager)
