@@ -9,10 +9,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/CityBear3/satellite/internal/adaptor/handler"
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc"
 	"github.com/CityBear3/satellite/internal/adaptor/rpc/middlewares"
+	"github.com/CityBear3/satellite/internal/adaptor/service"
+	minio2 "github.com/CityBear3/satellite/internal/infrastructure/minio"
+	"github.com/CityBear3/satellite/internal/infrastructure/rabbitmq"
 	"github.com/CityBear3/satellite/internal/usecase"
 	"github.com/CityBear3/satellite/pb/archive/v1"
 	"github.com/CityBear3/satellite/pb/authentication/v1"
@@ -79,7 +81,9 @@ func (s *Server) Serve() error {
 		},
 	)
 
-	fileTransfer := handler.NewFileTransfer(minioClient, minioCfg.BucketName)
+	fileClient := minio2.NewFileClient(minioClient)
+
+	fileTransfer := service.NewFileService(fileClient, minioCfg.BucketName, logger)
 
 	// repository
 	txManager := mysql.NewTxManger(db)
@@ -88,14 +92,16 @@ func (s *Server) Serve() error {
 	deviceRepository := mysql.NewDeviceRepository(db)
 	clientRepository := mysql.NewClientRepository(db)
 
-	// event handler
+	// event service
 	rqConf := s.cfg.RabbitMQConfig
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%d/", rqConf.User, rqConf.Password, rqConf.Host, rqConf.Port))
 	if err != nil {
 		return err
 	}
 
-	eventHandler := handler.NewEventHandler(logger, conn)
+	rabbitmqClient := rabbitmq.NewEventClient(conn)
+
+	eventHandler := service.NewEventService(logger, rabbitmqClient)
 
 	// interactor
 	archiveInteractor := usecase.NewArchiveInteractor(archiveRepository, eventRepository, txManager)

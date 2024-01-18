@@ -6,34 +6,25 @@ import (
 	"github.com/CityBear3/satellite/internal/domain/entity"
 	"github.com/CityBear3/satellite/internal/domain/gateway/repository"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
+	"github.com/CityBear3/satellite/internal/usecase/service"
 )
 
 type (
 	EventUseCase interface {
 		PublishArchiveEvent(ctx context.Context, client entity.Client) (primitive.ID, error)
-		ReceiveArchiveEvent(ctx context.Context, device entity.Device) (<-chan ArchiveEventMessage, error)
-	}
-
-	IEventHandler interface {
-		PublishArchiveEvent(ctx context.Context, event entity.ArchiveEvent) error
-		ReceiveArchiveEvent(ctx context.Context, deviceID primitive.ID) (<-chan ArchiveEventMessage, error)
-	}
-
-	ArchiveEventMessage struct {
-		ID       string `json:"id"`
-		ClientID string `json:"client_id"`
+		ReceiveArchiveEvent(ctx context.Context, device entity.Device) (<-chan service.ArchiveEventMessage, error)
 	}
 )
 
 type EventInteractor struct {
 	eventRepository repository.IEventRepository
-	eventHandler    IEventHandler
+	eventHandler    service.IEventService
 	txManager       ITxManager
 }
 
 func NewEventInteractor(
 	eventRepository repository.IEventRepository,
-	eventHandler IEventHandler,
+	eventHandler service.IEventService,
 	txManager ITxManager,
 ) *EventInteractor {
 	return &EventInteractor{
@@ -62,7 +53,7 @@ func (i EventInteractor) PublishArchiveEvent(ctx context.Context, client entity.
 	return archiveEvent.ID, nil
 }
 
-func (i EventInteractor) ReceiveArchiveEvent(ctx context.Context, device entity.Device) (<-chan ArchiveEventMessage, error) {
+func (i EventInteractor) ReceiveArchiveEvent(ctx context.Context, device entity.Device) (<-chan service.ArchiveEventMessage, error) {
 	archiveEvents, err := i.eventHandler.ReceiveArchiveEvent(ctx, device.ID)
 	if err != nil {
 		return nil, err

@@ -7,19 +7,19 @@ import (
 
 	"github.com/CityBear3/satellite/internal/adaptor/repository/mysql/shcema"
 	"github.com/CityBear3/satellite/internal/domain/entity"
-	"github.com/CityBear3/satellite/internal/domain/gateway/transfer"
 	"github.com/CityBear3/satellite/internal/domain/primitive"
 	"github.com/CityBear3/satellite/internal/domain/primitive/archive"
 	"github.com/CityBear3/satellite/internal/pkg/apperrs"
+	"github.com/CityBear3/satellite/internal/usecase/service"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type ArchiveRepository struct {
 	db           boil.ContextExecutor
-	fileTransfer transfer.IFileTransfer
+	fileTransfer service.IFileService
 }
 
-func NewArchiveRepository(db boil.ContextExecutor, fileTransfer transfer.IFileTransfer) *ArchiveRepository {
+func NewArchiveRepository(db boil.ContextExecutor, fileTransfer service.IFileService) *ArchiveRepository {
 	return &ArchiveRepository{
 		db:           db,
 		fileTransfer: fileTransfer,
