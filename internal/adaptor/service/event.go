@@ -55,23 +55,24 @@ func (h EventService) PublishArchiveEvent(ctx context.Context, event entity.Arch
 func (h EventService) ReceiveArchiveEvent(ctx context.Context, deviceID primitive.ID) (<-chan service.ArchiveEventMessage, error) {
 	ch, err := h.client.GetChannel()
 	if err != nil {
-		h.logger.Error(err.Error())
+		h.logger.Error("failed to get rabbitmq channel", zap.Error(err))
 		return nil, err
 	}
 
-	defer func() {
-		if err := ch.Close(); err != nil {
-			h.logger.Error(err.Error())
-		}
-	}()
-
 	messages, err := h.client.ReceiveMessage(ctx, ch, exchangeName, exchangeKind, deviceID.Value().String())
 	if err != nil {
+		h.logger.Error("failed to receive event message", zap.Error(err))
 		return nil, err
 	}
 
 	subscribe := make(chan service.ArchiveEventMessage, 10000)
 	go func() {
+		defer func() {
+			if err := ch.Close(); err != nil {
+				h.logger.Error(err.Error())
+			}
+		}()
+
 		var message service.ArchiveEventMessage
 		for m := range messages {
 			select {
@@ -80,7 +81,8 @@ func (h EventService) ReceiveArchiveEvent(ctx context.Context, deviceID primitiv
 				return
 			default:
 				if err := json.Unmarshal(m.Body, &message); err != nil {
-					h.logger.Error(err.Error())
+					h.logger.Error("failed to unmarshal event message", zap.Error(err))
+					continue
 				}
 
 				subscribe <- message

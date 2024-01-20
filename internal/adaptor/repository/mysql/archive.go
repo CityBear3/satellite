@@ -68,6 +68,7 @@ func (i *ArchiveRepository) GetArchive(
 	if errors.Is(err, sql.ErrNoRows) {
 		return entity.Archive{}, apperrs.NotFoundArchiveError
 	}
+
 	if err != nil {
 		return entity.Archive{}, err
 	}

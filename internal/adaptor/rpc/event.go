@@ -28,7 +28,7 @@ func (s EventRPCService) handleError(err error) error {
 	return convertors.ConvertError(s.logger, err)
 }
 
-func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (*eventPb.PublishEventResponse, error) {
+func (s EventRPCService) PublishEvent(ctx context.Context, _ *emptypb.Empty) (*eventPb.PublishEventResponse, error) {
 	client, err := auth.AuthenticatedClient(ctx)
 	if err != nil {
 		return nil, s.handleError(err)
@@ -44,7 +44,7 @@ func (s EventRPCService) PublishEvent(ctx context.Context, req *emptypb.Empty) (
 	}, nil
 }
 
-func (s EventRPCService) ReceiveEvent(req *emptypb.Empty, server eventPb.ArchiveEventService_ReceiveEventServer) error {
+func (s EventRPCService) ReceiveEvent(_ *emptypb.Empty, server eventPb.ArchiveEventService_ReceiveEventServer) error {
 	ctx := server.Context()
 
 	device, err := auth.AuthenticatedDevice(ctx)
